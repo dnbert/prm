@@ -9,7 +9,7 @@ module Debian
                     fpath = path + "/dists/" + r + "/" + c + "/" + "binary-" + a + "/"
                     pfpath = fpath + "Packages"
                     rfpath = fpath + "Release"
-        
+
                     puts "Building Path: #{fpath}"
 
                     FileUtils.mkpath(fpath)
@@ -39,10 +39,10 @@ module Debian
 end
 
 class FRM
-	class FRM::Repo
+    class FRM::Repo
         include Debian
 
-		attr_accessor :path
+        attr_accessor :path
         attr_accessor :type
         attr_accessor :component
         attr_accessor :arch
@@ -64,5 +64,5 @@ class FRM
             release_ar = release.split(",")
             return [arch_ar,release_ar,component_ar]
         end
-	end
+    end
 end
