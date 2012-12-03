@@ -15,26 +15,39 @@ module Debian
                     FileUtils.mkpath(fpath)
                     FileUtils.touch(pfpath)
                     FileUtils.touch(rfpath)
-                    generate_packages_gz(pfpath,path,rfpath,r,c,a)
+                    generate_packages_gz(fpath,pfpath,path,rfpath,r,c,a)
                 }
             }
         }
     end
 
-    def generate_packages_gz(pfpath,path,rfpath,r,c,a)
+    def generate_packages_gz(fpath,pfpath,path,rfpath,r,c,a)
         puts "Generating Packages: #{r} : #{c} : binary-#{a}"
-        `apt-ftparchive packages #{path} > #{pfpath}`
-        puts "Generating Release: #{r}"
+
+        control_data = ''
+        Dir.glob("#{fpath}*.deb") do |deb|
+            `ar x #{deb} control.tar.gz` 
+            `cat control.tar.gz | tar zxf - ./control`
+            control_data << `cat control`
+            `rm control.tar.gz`
+            `rm control`
+        end
+       
+        d = File.open(pfpath, "w+")
+        d.write control_data
+        d.write "\n"
+        d.close
+
+        data = ''
+        f = File.open(pfpath, "r").each { |line|
+            data << line
+        }
+        f.close
+        
+        Zlib::GzipWriter.open(pfpath + ".gz") do |gz|
+            gz.write data
+        end
         `apt-ftparchive release #{path}/dists/#{r}/ > #{path}/dists/#{r}/Release`
-        #data = ''
-        #f = File.open(pfpath, "r").each { |line|
-        #    data << line
-        #}
-        #f.close
-        #
-        #Zlib::GzipWriter.open(pfpath + ".gz") do |gz|
-        #    gz.write data
-        #end
     end
 end
 
