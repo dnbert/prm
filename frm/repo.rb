@@ -1,5 +1,8 @@
+require 'rubygems'
 require 'fileutils'
 require 'zlib'
+require 'digest/md5'
+require 'peach' 
 
 module Debian
     def build_apt_repo(path, component, arch, release)
@@ -24,18 +27,41 @@ module Debian
     def generate_packages_gz(fpath,pfpath,path,rfpath,r,c,a)
         puts "Generating Packages: #{r} : #{c} : binary-#{a}"
 
-        control_data = ''
-        Dir.glob("#{fpath}*.deb") do |deb|
-            `ar x #{deb} control.tar.gz` 
-            `cat control.tar.gz | tar zxf - ./control`
-            control_data << `cat control`
-            `rm control.tar.gz`
-            `rm control`
+	d = File.open(pfpath, "w+")	
+	npath = "dists/" + r + "/" + c + "/" + "binary-" + a + "/"
+        control_data = []
+        Dir.glob("#{fpath}*.deb").peach do |deb|
+	    temp_control = ''
+	    md5sum = ''
+	    tdeb = deb.split('/').last
+	    md5sum_path = path + "/dists/" + r + "/" + c + "/" + "binary-" + a + "/md5-results/" + tdeb
+
+	    FileUtils.mkdir_p "tmp/#{tdeb}/"
+	    FileUtils.mkdir_p path + "/dists/" + r + "/" + c + "/" + "binary-" + a + "/md5-results/"
+	    `ar p #{deb} control.tar.gz | tar zx -C tmp/#{tdeb}/`
+
+	    init_size = `wc -c < #{deb}`
+
+	    if File.exists? md5sum_path
+		file = File.open(md5sum_path, 'r')
+		md5sum = file.read
+		file.close
+	    else
+		md5sum = Digest::MD5.file(deb)
+                File.open(md5sum_path, 'w') { |file| file.write(md5sum) }
+	    end
+
+
+            `echo "Filename: #{npath}#{tdeb}" >> tmp/#{tdeb}/control`
+	    `echo "MD5sum: #{md5sum}" >> tmp/#{tdeb}/control`
+	    `echo "Size: #{init_size}" >> tmp/#{tdeb}/control`
+            temp_control << `cat tmp/#{tdeb}/control`
+	    control_data << temp_control
         end
-       
-        d = File.open(pfpath, "w+")
+
+	FileUtils.rmtree 'tmp/'
+
         d.write control_data
-        d.write "\n"
         d.close
 
         data = ''
@@ -75,7 +101,7 @@ class FRM
             arch_ar = arch.split(",")
             component_ar = component.split(",")
             release_ar = release.split(",")
-            return [arch_ar,release_ar,component_ar]
+            return [arch_ar,component_ar,release_ar]
         end
     end
 end
