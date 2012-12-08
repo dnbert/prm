@@ -9,5 +9,6 @@ Gem::Specification.new do |s|
 	s.files       = ["prm.rb", "prm/repo.rb", "prm/trollop.rb"]
 	s.bindir	  = 'bin'
 	s.executables = ['prm']
+	s.add_dependency('peach')
 	s.homepage    = 'https://github.com/dnbert/prm'
 end
