@@ -110,7 +110,6 @@ module Debian
         release_file = File.new("#{path}/dists/#{release}/Release","wb")
         release_file.puts erb
         release_file.close
-#            `apt-ftparchive release #{path}/dists/#{r}/ > #{path}/dists/#{r}/Release`
     end
 end
 
