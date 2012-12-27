@@ -3,6 +3,7 @@ require 'fileutils'
 require 'zlib'
 require 'digest/md5'
 require 'peach' 
+require 'erb'
 
 module Debian
     def build_apt_repo(path, component, arch, release)
@@ -21,6 +22,7 @@ module Debian
                     generate_packages_gz(fpath,pfpath,path,rfpath,r,c,a)
                 }
             }
+            generate_release(path,r,component,arch)
         }
     end
 
@@ -74,7 +76,41 @@ module Debian
         Zlib::GzipWriter.open(pfpath + ".gz") do |gz|
             gz.write data
         end
-        `apt-ftparchive release #{path}/dists/#{r}/ > #{path}/dists/#{r}/Release`
+    end
+
+    def generate_release(path,release,component,arch)
+        date = Time.now.utc
+
+        release_info = Hash.new()
+        unreasonable_array = Array.new
+        unreasonable_array = ["Packages", "Packages.gz", "Release"]
+
+
+        component.each do |c| 
+            arch.each do |ar|
+                unreasonable_array.each do |unr|
+                    tmp_path = "#{path}/dists/#{release}/#{c}/binary-#{ar}"
+                    tmp_hash = Hash.new
+                    filename = "#{c}/binary-#{ar}/#{unr}".chomp
+
+                    byte_size = File.size("#{tmp_path}/#{unr}").to_s
+                    md5sum = Digest::MD5.file("#{tmp_path}/#{unr}").to_s
+
+                    tmp_hash['size'] = byte_size
+                    tmp_hash['md5sum'] = md5sum
+                    release_info[filename] = tmp_hash
+                end
+            end
+        end
+
+        erb = ERB.new(File.open('templates/deb_release.erb') { |file|
+            file.read
+        }).result(binding)
+
+        release_file = File.new("#{path}/dists/#{release}/Release","wb")
+        release_file.puts erb
+        release_file.close
+#            `apt-ftparchive release #{path}/dists/#{r}/ > #{path}/dists/#{r}/Release`
     end
 end
 
