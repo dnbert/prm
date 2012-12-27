@@ -6,7 +6,7 @@ require 'peach'
 require 'erb'
 
 module Debian
-    def build_apt_repo(path, component, arch, release)
+    def build_apt_repo(path, component, arch, release, gpg)
         release.each { |r|
             component.each { |c|
                 arch.each { |a|
@@ -23,6 +23,10 @@ module Debian
                 }
             }
             generate_release(path,r,component,arch)
+
+            if gpg == true
+                generate_release_gpg(path,r)
+            end
         }
     end
 
@@ -111,6 +115,13 @@ module Debian
         release_file.puts erb
         release_file.close
     end
+
+    # We expect that GPG is installed and a key has already been made
+    def generate_release_gpg(path,release)
+        Dir.chdir("#{path}/dists/#{release}") do
+            system "gpg --yes --output Release.gpg -ba Release"
+        end
+    end
 end
 
 class PRM
@@ -122,12 +133,13 @@ class PRM
         attr_accessor :component
         attr_accessor :arch
         attr_accessor :release
+        attr_accessor :gpg
 
         def create
             parch,pcomponent,prelease = _parse_vars(arch,component,release)
 
             if "#{@type}" == "deb"
-                build_apt_repo(path,pcomponent,parch,prelease)
+                build_apt_repo(path,pcomponent,parch,prelease,gpg)
             elsif "#{@type}" == "rpm"
                 # add rpm stuff here
             end

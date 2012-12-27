@@ -12,6 +12,7 @@ opts = Trollop::options do
     opt :component, "Component name for repository (Multi component supported by comma)", :type => :string, :required => :true, :short => "-c"
     opt :release, "Release name for repository (Multi release supported by comma)", :type => :string, :required => true, :short => "-r"
     opt :arch, "Architecture for repository (Multi arch supported by comma)", :type => :string, :require => true, :short => "-a"
+    opt :gpg, "Sign release files with a GPG key (Expects GPG key to be available)", :default => false
     opt :generate, "Create new repository", :short => "-g"
 end
 
@@ -24,6 +25,7 @@ r.release = opts[:release]
 r.arch = opts[:arch]
 r.type = opts[:type]
 r.path = opts[:path]
+r.gpg = opts[:gpg]
 
 if opts[:generate]
     r.create
