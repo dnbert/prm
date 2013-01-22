@@ -13,6 +13,25 @@ but future releases are expected to contain rpm and solaris updates.
 PRM for apt quickly regenerates package repositories by caching md5 hashes and checking against the cache each time Packages.gz is generated. Usually
 this is unnecessary, but when there are large packages in a repository this can slow down generation times to 20-30 minutes. PRM proactively md5 caches.
 
+Syncing
+===
+
+PRM supports syncing your repository to DreamObjects, an object storage service, using the S3 API.
+
+```
+prm -t sync -p pool -r squeeze -a amd64 -c main -g -e my_access_key -s my_secret_key
+```
+
+Buckets are created based on the path (-p) flag. In the previous case, pool would be a bucket and the contents of your repository would be objects. If the 
+bucket does not exist, PRM will create it for you.
+
+To use DreamObjects as your apt repository, add the following to your sources.list
+
+```
+deb http://objects.dreamhost.com/my_bucket_name/ my_release my_component
+```
+
+If the local apt repository has packages removed, PRM will remove these from your bucket. All objects synced are set by default to be public.
 
 Todo List
 ===
@@ -40,6 +59,8 @@ Commands
 --generate, -g:   		Create new repository
 --version, -v:   		Print version and exit
 --help, -h:   			Show this message
+--accesskey, -e <s>:   Access Key for DreamObjects
+--secretkey, -s <s>:   Secret Key for DreamObjects
 ```
 
 Example
@@ -47,6 +68,3 @@ Example
 ```
 prm --type deb --path pool --component dev,staging --release precise --arch amd64 --gpg --generate
 ```
-Component, Release and Arch flags can have multiple values seperated by commas.
-      end
-      safesystem(attributes[:python_bin], "setup.py", "install", *flags)

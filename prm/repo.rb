@@ -4,6 +4,8 @@ require 'zlib'
 require 'digest/md5'
 require 'peach' 
 require 'erb'
+require 'find'
+require 'aws/s3'
 
 module Debian
     def build_apt_repo(path, component, arch, release, gpg)
@@ -124,9 +126,55 @@ module Debian
     end
 end
 
+module DHO
+    def sync_to_dho(path, accesskey, secretkey)
+        AWS::S3::Base.establish_connection!(
+            :server             => 'objects.dreamhost.com',
+            :use_ssl            => true,
+            :access_key_id      => accesskey,
+            :secret_access_key  => secretkey
+        )
+        
+        AWS::S3::Service.buckets.each do |bucket|
+            unless bucket == path
+                AWS::S3::Bucket.create(path)
+            end
+        end
+
+        new_content = Array.new
+        Find.find(path + "/") do |object|
+            object.slice!(path + "/")
+            if (object =~ /deb$/) || (object =~ /Release$/) || (object =~ /Packages.gz$/) || (object =~ /Packages$/) || (object =~ /gpg$/)
+                f = path + "/" + object
+                new_content << object
+                AWS::S3::S3Object.store(
+                    object,
+                    open(f),
+                    path
+                )
+
+                policy = AWS::S3::S3Object.acl(object, path)
+                policy.grants = [ AWS::S3::ACL::Grant.grant(:public_read) ]
+                AWS::S3::S3Object.acl(object,path,policy)
+            end
+        end
+
+        bucket_info = AWS::S3::Bucket.find(path)
+        bucket_info.each do |obj|
+            o = obj.key
+            if (o =~ /deb$/) || (o =~ /Release$/) || (o =~ /Packages.gz$/) || (o =~ /Packages$/) || (o =~ /gpg$/)
+                unless new_content.include?(o)
+                    AWS::S3::S3Object.delete(o,path)
+                end
+            end
+        end
+    end
+end
+
 class PRM
     class PRM::Repo
         include Debian
+        include DHO
 
         attr_accessor :path
         attr_accessor :type
@@ -134,12 +182,16 @@ class PRM
         attr_accessor :arch
         attr_accessor :release
         attr_accessor :gpg
+        attr_accessor :secretkey
+        attr_accessor :accesskey
 
         def create
             parch,pcomponent,prelease = _parse_vars(arch,component,release)
 
             if "#{@type}" == "deb"
                 build_apt_repo(path,pcomponent,parch,prelease,gpg)
+            elsif "#{@type}" == "sync"
+                sync_to_dho(path, accesskey, secretkey)
             elsif "#{@type}" == "rpm"
                 # add rpm stuff here
             end
