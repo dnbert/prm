@@ -91,6 +91,14 @@ module Debian
         unreasonable_array = Array.new
         unreasonable_array = ["Packages", "Packages.gz", "Release"]
 
+        component.clear
+
+        Dir.glob(path + "/dists/" + release + "/*").select { |f|
+            f.slice!(path + "/dists/" + release + "/")
+            unless f == "Release"
+                component << f
+            end
+        }
 
         component.each do |c| 
             arch.each do |ar|
