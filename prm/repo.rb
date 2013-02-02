@@ -95,7 +95,7 @@ module Debian
 
         Dir.glob(path + "/dists/" + release + "/*").select { |f|
             f.slice!(path + "/dists/" + release + "/")
-            unless f == "Release"
+            unless f == "Release" or f == "Release.gpg"
                 component << f
             end
         }
