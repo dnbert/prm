@@ -121,15 +121,19 @@ module Debian
             file.read
         }).result(binding)
 
-        release_file = File.new("#{path}/dists/#{release}/Release","wb")
+        release_file = File.new("#{path}/dists/#{release}/Release.tmp","wb")
         release_file.puts erb
         release_file.close
+
+        FileUtils.move("#{path}/dists/#{release}/Release.tmp", "#{path}/dists/#{release}/Release")
     end
 
     # We expect that GPG is installed and a key has already been made
     def generate_release_gpg(path,release)
         Dir.chdir("#{path}/dists/#{release}") do
-            system "gpg --yes --output Release.gpg -ba Release"
+            unless File.exist?("Release.gpg")
+                system "gpg --yes --output Release.gpg -ba Release"
+            end
         end
     end
 end
