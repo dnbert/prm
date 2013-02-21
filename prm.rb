@@ -3,7 +3,7 @@
 require 'prm/trollop'
 require 'prm/repo'
 
-version_info = "0.0.7"
+version_info = "0.0.8"
 
 opts = Trollop::options do
     version "Package Repository Manager #{version_info} - 2012 Brett Gailey"

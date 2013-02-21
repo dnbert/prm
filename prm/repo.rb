@@ -131,9 +131,7 @@ module Debian
     # We expect that GPG is installed and a key has already been made
     def generate_release_gpg(path,release)
         Dir.chdir("#{path}/dists/#{release}") do
-            unless File.exist?("Release.gpg")
-                system "gpg --yes --output Release.gpg -ba Release"
-            end
+            system "gpg --yes --output Release.gpg -b Release"
         end
     end
 end
