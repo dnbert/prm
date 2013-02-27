@@ -181,7 +181,7 @@ module DHO
     end
 end
 
-class PRM
+module PRM
     class PRM::Repo
         include Debian
         include DHO
