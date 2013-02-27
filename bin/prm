@@ -1,6 +1,12 @@
 #!/usr/bin/env ruby
 
 require 'rubygems'
-require 'prm'
+
+begin
+  require 'prm'
+rescue LoadError
+  $: << File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib'))
+  require 'prm'
+end
 
 PRM.new(*ARGV)

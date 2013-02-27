@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
 	s.description = "PRM (Package Repository Manager) is an Operating System independent Package Repository tool. PRM supports Repository syncing to DreamObjects"
 	s.authors     = ["Brett Gailey"]
 	s.email       = 'brett.gailey@dreamhost.com'
-	s.files       = ["prm.rb", "prm/repo.rb", "prm/trollop.rb"]
+	s.files       = [ "lib/prm/repo.rb", "lib/prm/trollop.rb", "lib/prm.rb" ]
 	s.bindir	  = 'bin'
 	s.executables = ['prm']
 	s.add_dependency('peach')
