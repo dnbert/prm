@@ -70,7 +70,7 @@ module Debian
 
         FileUtils.rmtree 'tmp/'
 
-        d.write control_data
+        d.write control_data.join("\n")
         d.close
 
         data = ''
