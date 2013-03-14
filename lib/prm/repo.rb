@@ -136,7 +136,9 @@ module Debian
 end
 
 module DHO
-    def sync_to_dho(path, accesskey, secretkey)
+    def sync_to_dho(path, accesskey, secretkey,pcomponent,prelease)
+        component = pcomponent.join
+        release = prelease.join
         AWS::S3::Base.establish_connection!(
             :server             => 'objects.dreamhost.com',
             :use_ssl            => true,
@@ -177,6 +179,9 @@ module DHO
                 end
             end
         end
+        puts "Your apt repository is located at http://objects.dreamhost.com/#{path}/"
+        puts "Add the following to your apt sources.list"
+        puts "deb http://objects.dreamhost.com/#{path}/ #{release} #{component}"
     end
 end
 
@@ -200,7 +205,7 @@ module PRM
             if "#{@type}" == "deb"
                 build_apt_repo(path,pcomponent,parch,prelease,gpg)
             elsif "#{@type}" == "sync"
-                sync_to_dho(path, accesskey, secretkey)
+                sync_to_dho(path, accesskey, secretkey,pcomponent,prelease)
             elsif "#{@type}" == "rpm"
                 # add rpm stuff here
             end
