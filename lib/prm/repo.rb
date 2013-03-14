@@ -37,10 +37,9 @@ module Debian
 
         d = File.open(pfpath, "w+")	
         npath = "dists/" + r + "/" + c + "/" + "binary-" + a + "/"
-        control_data = []
+        packages_text = []
 
         Dir.glob("#{fpath}*.deb").peach do |deb|
-            temp_control = ''
             md5sum = ''
             tdeb = deb.split('/').last
             md5sum_path = path + "/dists/" + r + "/" + c + "/" + "binary-" + a + "/md5-results/" + tdeb
@@ -60,27 +59,27 @@ module Debian
                 File.open(md5sum_path, 'w') { |file| file.write(md5sum) }
             end
 
+            package_info = [
+              "Filename: #{npath}#{tdeb}",
+              "MD5sum: #{md5sum}",
+              "Size: #{init_size}"
+            ]
 
-            `echo "Filename: #{npath}#{tdeb}" >> tmp/#{tdeb}/control`
-            `echo "MD5sum: #{md5sum}" >> tmp/#{tdeb}/control`
-            `echo "Size: #{init_size}" >> tmp/#{tdeb}/control`
-            temp_control << `cat tmp/#{tdeb}/control`
-            control_data << temp_control
+            # Copy the control file data into the Packages list
+            d.write(File.read("tmp/#{tdeb}/control"))
+            d.write(package_info.join("\n"))
+            d.write("\n") # blank line between package info in the Packages file
         end
 
         FileUtils.rmtree 'tmp/'
 
-        d.write control_data.join("\n")
         d.close
 
-        data = ''
-        f = File.open(pfpath, "r").each { |line|
-            data << line
-        }
-        f.close
-
         Zlib::GzipWriter.open(pfpath + ".gz") do |gz|
-            gz.write data
+          f = File.new(pfpath, "r")
+          f.each do |line|
+            gz.write(line)
+          end
         end
     end
 
