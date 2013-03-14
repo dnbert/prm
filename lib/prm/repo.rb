@@ -116,7 +116,9 @@ module Debian
             end
         end
 
-        erb = ERB.new(File.open('templates/deb_release.erb') { |file|
+        
+        template_dir = File.join(File.dirname(__FILE__), "..", "..", "templates")
+        erb = ERB.new(File.open("#{template_dir}/deb_release.erb") { |file|
             file.read
         }).result(binding)
 

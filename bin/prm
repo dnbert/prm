@@ -10,7 +10,7 @@ rescue LoadError
   require 'prm'
 end
 
-version_info = "0.0.12"
+version_info = "0.0.13"
 
 class Main < Clamp::Command
 	option ["-t", "--type"], "TYPE", "Type of repo to create", :required => true
