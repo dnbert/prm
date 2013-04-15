@@ -2,7 +2,6 @@ require 'rubygems'
 require 'fileutils'
 require 'zlib'
 require 'digest/md5'
-require 'peach' 
 require 'erb'
 require 'find'
 require 'aws/s3'
@@ -39,7 +38,7 @@ module Debian
         npath = "dists/" + r + "/" + c + "/" + "binary-" + a + "/"
         packages_text = []
 
-        Dir.glob("#{fpath}*.deb").peach do |deb|
+        Dir.glob("#{fpath}*.deb").each do |deb|
             md5sum = ''
             tdeb = deb.split('/').last
             md5sum_path = path + "/dists/" + r + "/" + c + "/" + "binary-" + a + "/md5-results/" + tdeb
