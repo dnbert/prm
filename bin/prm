@@ -10,7 +10,7 @@ rescue LoadError
   require 'prm'
 end
 
-version_info = "0.0.13"
+version_info = "0.1.0"
 
 class Main < Clamp::Command
 	option ["-t", "--type"], "TYPE", "Type of repo to create", :required => true
@@ -20,6 +20,7 @@ class Main < Clamp::Command
 	option ["-a", "--arch"], "ARCH", "Architecture of repo contents", :required => true
 	option ["--accesskey"], "ACCESS KEY", "DHO/S3 Access Key", :default => false
 	option ["--secretkey"], "SECRET KEY", "DHO/S3 Secret Key", :default => false
+	option ["-s", "--snapshot"], "COMPONENT", "Creates a snapshot of a component", :default => false
 	option ["-k", "--gpg"], :flag,  "Sign release files with users GPG key", :default => false
 	option ["-g", "--generate"], :flag , "Generate new repository"
 
@@ -38,6 +39,9 @@ class Main < Clamp::Command
 		end
 		unless secretkey.nil?
 			r.secretkey = secretkey
+		end
+		unless snapshot.nil?
+			r.snapshot = snapshot
 		end
 		
 		r.create

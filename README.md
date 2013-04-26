@@ -33,6 +33,15 @@ deb http://objects.dreamhost.com/my_bucket_name/ my_release my_component
 
 If the local apt repository has packages removed, PRM will remove these from your bucket. All objects synced are set by default to be public.
 
+Snapshots
+===
+
+Snapshots can be used to promote components within Debian package repositories. The components are named [snapshot-name]-[date] and is symlinked to [snapshot-name].
+
+```
+prm -t deb -p pool -r precise -a amd64 -c unstable -s stable -g
+```
+
 Todo List
 ===
 

@@ -137,6 +137,34 @@ module Debian
     end
 end
 
+module SNAP
+    def snapshot_to(path,component,release,snapname,type)
+        if type != "deb"
+            puts "Only deb supported"
+            return
+        end
+
+        release.each do |r| 
+            time = Time.new
+            now = time.strftime("%Y-%m-%d-%H-%M")
+            new_snap = "#{snapname}-#{now}"
+
+            if File.exists?("#{path}/dists/#{r}/#{snapname}") 
+                puts "Snapshot target is a filesystem, remove it or rename your snap target"
+                return
+            end
+
+            unless File.exists?("#{path}/dists/#{r}/#{new_snap}/")
+                Dir.mkdir("#{path}/dists/#{r}/#{new_snap}")
+            end
+
+            FileUtils.cp_r(Dir["#{path}/dists/#{r}/#{component}/*"], "#{path}/dists/#{r}/#{new_snap}")
+            FileUtils.ln_s "#{new_snap}", "#{path}/dists/#{r}/#{snapname}", :force => true
+            puts "Created #{snapname} snapshot of #{component}\n"
+        end
+    end
+end
+
 module DHO
     def sync_to_dho(path, accesskey, secretkey,pcomponent,prelease)
         component = pcomponent.join
@@ -191,6 +219,7 @@ module PRM
     class PRM::Repo
         include Debian
         include DHO
+        include SNAP
 
         attr_accessor :path
         attr_accessor :type
@@ -200,12 +229,17 @@ module PRM
         attr_accessor :gpg
         attr_accessor :secretkey
         attr_accessor :accesskey
+        attr_accessor :snapshot
 
         def create
             parch,pcomponent,prelease = _parse_vars(arch,component,release)
 
             if "#{@type}" == "deb"
-                build_apt_repo(path,pcomponent,parch,prelease,gpg)
+                if snapshot
+                    snapshot_to(path,pcomponent,prelease,snapshot,type)
+                else
+                    build_apt_repo(path,pcomponent,parch,prelease,gpg)
+                end
             elsif "#{@type}" == "sync"
                 sync_to_dho(path, accesskey, secretkey,pcomponent,prelease)
             elsif "#{@type}" == "rpm"
