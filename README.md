@@ -13,6 +13,11 @@ but future releases are expected to contain rpm and solaris updates.
 PRM for apt quickly regenerates package repositories by caching md5 hashes and checking against the cache each time Packages.gz is generated. Usually
 this is unnecessary, but when there are large packages in a repository this can slow down generation times to 20-30 minutes. PRM proactively md5 caches.
 
+The --directory (-d) flag can be used to move packages from a directory into your package repository. PRM will look through the location passed into
+the -d flag and move any matching packages into their respective location. Packages are moved based on their architecture (amd64, i386, etc). 
+
+Alternatively, you may choose to place your packages into path/dists/release/component/arch/.
+
 Syncing
 ===
 
@@ -70,10 +75,14 @@ Commands
 --help, -h:   			Show this message
 --accesskey, -e <s>:   Access Key for DreamObjects
 --secretkey, -s <s>:   Secret Key for DreamObjects
+-d, --directory DIRECTORY     Move packages from directory to target
+-s, --snapshot COMPONENT      Creates a snapshot of a component
 ```
 
 Example
 ===
 ```
 prm --type deb --path pool --component dev,staging --release precise --arch amd64 --gpg --generate
+
+prm -t deb -p pool -c stable -r precise -a amd64 --directory unstable -g
 ```

@@ -8,20 +8,22 @@ require 'find'
 require 'aws/s3'
 
 module Debian
-    def build_apt_repo(path, component, arch, release, gpg)
+    def build_apt_repo(path, component, arch, release, gpg, silent)
         release.each { |r|
             component.each { |c|
                 arch.each { |a|
                     fpath = path + "/dists/" + r + "/" + c + "/" + "binary-" + a + "/"
                     pfpath = fpath + "Packages"
                     rfpath = fpath + "Release"
-
-                    puts "Building Path: #{fpath}"
+                    
+                    unless silent == true
+                        puts "Building Path: #{fpath}"
+                    end
 
                     FileUtils.mkpath(fpath)
                     FileUtils.touch(pfpath)
                     FileUtils.touch(rfpath)
-                    generate_packages_gz(fpath,pfpath,path,rfpath,r,c,a)
+                    generate_packages_gz(fpath,pfpath,path,rfpath,r,c,a, silent)
                 }
             }
             generate_release(path,r,component,arch)
@@ -32,8 +34,31 @@ module Debian
         }
     end
 
-    def generate_packages_gz(fpath,pfpath,path,rfpath,r,c,a)
-        puts "Generating Packages: #{r} : #{c} : binary-#{a}"
+    def move_packages(path,component,arch,release,directory)
+        unless File.exists?(directory)
+            puts "ERROR: #{directory} doesn't exist... not doing anything\n"
+            return false
+        end
+
+        release.each { |r|
+            component.each { |c|
+                arch.each { |a|
+                    Dir.glob(directory + "/*.deb") do |file|
+                        if file =~ /^.*#{a}.*\.deb$/i
+                            FileUtils.mv(file, "#{path}/dists/#{r}/#{c}/binary-#{a}/")
+                        end
+                    end
+                }
+            }
+        }
+        # Regex?
+        #/^.*#{arch}.*\.deb$/i
+    end
+
+    def generate_packages_gz(fpath,pfpath,path,rfpath,r,c,a,silent)
+        unless silent == true
+            puts "Generating Packages: #{r} : #{c} : binary-#{a}"
+        end
 
         d = File.open(pfpath, "w+")	
         npath = "dists/" + r + "/" + c + "/" + "binary-" + a + "/"
@@ -230,6 +255,7 @@ module PRM
         attr_accessor :secretkey
         attr_accessor :accesskey
         attr_accessor :snapshot
+        attr_accessor :directory
 
         def create
             parch,pcomponent,prelease = _parse_vars(arch,component,release)
@@ -238,7 +264,15 @@ module PRM
                 if snapshot
                     snapshot_to(path,pcomponent,prelease,snapshot,type)
                 else
-                    build_apt_repo(path,pcomponent,parch,prelease,gpg)
+                    if directory
+                        silent = true
+                        build_apt_repo(path,pcomponent,parch,prelease,gpg,silent)
+                        if move_packages(path,pcomponent,parch,prelease,directory) == false
+                            return
+                        end
+                    end
+                    silent = false
+                    build_apt_repo(path,pcomponent,parch,prelease,gpg,silent)
                 end
             elsif "#{@type}" == "sync"
                 sync_to_dho(path, accesskey, secretkey,pcomponent,prelease)
