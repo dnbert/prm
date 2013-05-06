@@ -2,9 +2,10 @@ require 'rubygems'
 require 'fileutils'
 require 'zlib'
 require 'digest/md5'
-require 'peach' 
 require 'erb'
 require 'find'
+require 'thread'
+require 'peach' 
 require 'aws/s3'
 
 module Debian
@@ -60,9 +61,11 @@ module Debian
       puts "Generating Packages: #{r} : #{c} : binary-#{a}"
     end
 
-    d = File.open(pfpath, "w+")	
     npath = "dists/" + r + "/" + c + "/" + "binary-" + a + "/"
     packages_text = []
+
+    d = File.open(pfpath, "w+")	
+    write_mutex = Mutex.new
 
     Dir.glob("#{fpath}*.deb").peach do |deb|
       md5sum = ''
@@ -90,10 +93,12 @@ module Debian
         "Size: #{init_size}"
       ]
 
-      # Copy the control file data into the Packages list
-      d.write(File.read("tmp/#{tdeb}/control"))
-      d.write(package_info.join("\n"))
-      d.write("\n") # blank line between package info in the Packages file
+      write_mutex.synchronize do
+        # Copy the control file data into the Packages list
+        d.write(File.read("tmp/#{tdeb}/control"))
+        d.write(package_info.join("\n"))
+        d.write("\n") # blank line between package info in the Packages file
+      end
     end
 
     FileUtils.rmtree 'tmp/'
