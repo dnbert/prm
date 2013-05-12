@@ -42,7 +42,6 @@ module Debian
     end
 
     files_moved = Array.new
-    puts release.inspect
     release.each { |r|
       component.each { |c|
         arch.each { |a|
@@ -51,7 +50,6 @@ module Debian
             if file =~ /^.*#{a}.*\.deb$/i || file =~ /^.*all.*\.deb$/i || file =~ /^.*any.*\.deb$/i
               if file =~ /^.*#{r}.*\.deb$/i
                 # Lets do this here to help mitigate packages like "asdf-123+wheezy.deb"
-                puts "doing this for #{file}"
                 FileUtils.cp(file, "#{path}/dists/#{r}/#{c}/binary-#{a}/")
                 FileUtils.rm(file)
               else
@@ -63,7 +61,7 @@ module Debian
         }
       }
     }
-    puts files_moved.inspect
+
     files_moved.each do |f|
         if File.exists?(f)
             FileUtils.rm(f)
