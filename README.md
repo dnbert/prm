@@ -24,7 +24,7 @@ Syncing
 PRM supports syncing your repository to DreamObjects, an object storage service, using the S3 API.
 
 ```
-prm -t sync -p pool -r squeeze -a amd64 -c main -g -e my_access_key -s my_secret_key
+prm -t sync -p pool -r squeeze -a amd64 -c main -g --accesskey my_access_key --secretkey my_secret_key
 ```
 
 Buckets are created based on the path (-p) flag. In the previous case, pool would be a bucket and the contents of your repository would be objects. If the 
