@@ -1,3 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <metadata xmlns="http://linux.duke.edu/metadata/common" xmlns:rpm="http://linux.duke.edu/metadata/rpm" packages="0">
+<% package_hash.each_pair do |k,v| %>
+<package type="rpm">
+  <name><%= package_hash[k]['name'] %></name>
+  <arch><%= package_hash[k]['arch'] %></arch>
+  <version epoch="0" ver="1.0" rel="1"/>
+  <checksum type="sha256" pkgid="YES"><%= package_hash[k]['sha256'] %></checksum>
+  <summary>no description given</summary>
+  <description>no description given</description>
+  <packager></packager>
+  <url>http://example.com/no-uri-given</url>
+  <time/>
+  <size/>
+<location href="<%=k%>"/>
+  <format>
+    <rpm:license>unknown</rpm:license>
+    <rpm:vendor></rpm:vendor>
+    <rpm:group>default</rpm:group>
+    <rpm:buildhost>localhost</rpm:buildhost>
+    <rpm:sourcerpm><%= package_hash[k]['name'] %>-<%= package_hash[k]['version'] %>.src.rpm</rpm:sourcerpm>
+    <rpm:provides>
+      <rpm:entry name="<%= package_hash[k]['name'] %>" flags="EQ" epoch="0" ver="1.0" rel="1"/>
+      <rpm:entry name="<%= package_hash[k]['name'] %>(<%= package_hash[k]['arch']%>)" flags="EQ" epoch="0" ver="1.0" rel="1"/>
+    </rpm:provides>
+  </format>
+</package>
+<% end %>
 </metadata>

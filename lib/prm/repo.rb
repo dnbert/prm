@@ -13,6 +13,7 @@ module Redhat
   def build_rpm_repo(path,arch,release,gpg,silent)
     release.each { |r|
       arch.each { |a|
+        orgpath = path
         path = path + "/repodata/"
         FileUtils.mkpath(path)
         timestamp = Time.now.to_i
@@ -25,15 +26,54 @@ module Redhat
           primary
         }
 
-        erb_files.each { |f|
-          erb = ERB.new(File.open("#{template_dir}/#{f}.xml.erb") { |file|
-            file.read
-          }).result(binding)
- 
-          release_file = File.new("#{path}/#{f}.xml.tmp","wb")
-          release_file.puts erb
-          release_file.close
+        Dir.glob("#{orgpath}/*.rpm").peach do |rpm|
+          sha256sum = ''
+          sha256_path = "#{orgpath}/sha256_results"
+          unless File.directory?(sha256_path)
+            FileUtils.mkdir(sha256_path)
+          end
+          trpm = rpm.split('/').last
+          puts rpm
+          if File.exists?("#{sha256_path}/#{trpm}")
+            file = File.open("#{sha256_path}/#{trpm}", 'r')
+            sha256sum = file.read
+            file.close
+          else
+            sha256sum = Digest::SHA256.file(rpm).hexdigest
+            puts sha256sum
+            File.open("#{sha256_path}/#{trpm}", 'w') { |file| file.write(sha256sum) }
+          end
 
+          name = String.new
+          rpm_arch = String.new
+          version = String.new
+          if trpm =~ /^([a-z]+)-(\d+[.]\d+-(?:[a-z]+\+)?\d+)[.](\w+)[.]\w*$/
+             name = $1 
+             version = $2
+             rpm_arch = $3
+          end
+
+          package_hash = {
+            trpm => {
+              "sha256"  => sha256sum,
+              "name"    => name,
+              "arch"    => rpm_arch,
+              "version" => version
+            }
+          }
+
+          erb_files.each { |f|
+            erb = ERB.new(File.open("#{template_dir}/#{f}.xml.erb") { |file|
+              file.read
+            }).result(binding)
+
+            release_file = File.new("#{path}/#{f}.xml.tmp","wb")
+            release_file.puts erb
+            release_file.close
+          }
+        end
+
+        erb_files.each { |f|
           Zlib::GzipWriter.open("#{path}/#{f}.xml.tmp.gz") do |gz|
             f = File.new("#{path}/#{f}.xml.tmp", "r")
             f.each do |line|
