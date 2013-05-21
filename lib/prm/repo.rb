@@ -2,11 +2,101 @@ require 'rubygems'
 require 'fileutils'
 require 'zlib'
 require 'digest/md5'
+require 'digest/sha2'
 require 'erb'
 require 'find'
 require 'thread'
 require 'peach' 
 require 'aws/s3'
+
+module Redhat
+  def build_rpm_repo(path,arch,release,gpg,silent)
+    release.each { |r|
+      arch.each { |a|
+        path = path + "/repodata/"
+        FileUtils.mkpath(path)
+        timestamp = Time.now.to_i
+
+        template_dir = File.join(File.dirname(__FILE__), "..", "..", "templates")
+
+        erb_files = %w{
+          filelists
+          other
+          primary
+        }
+
+        erb_files.each { |f|
+          erb = ERB.new(File.open("#{template_dir}/#{f}.xml.erb") { |file|
+            file.read
+          }).result(binding)
+ 
+          release_file = File.new("#{path}/#{f}.xml.tmp","wb")
+          release_file.puts erb
+          release_file.close
+
+          Zlib::GzipWriter.open("#{path}/#{f}.xml.tmp.gz") do |gz|
+            f = File.new("#{path}/#{f}.xml.tmp", "r")
+            f.each do |line|
+              gz.write(line)
+            end
+          end
+        }
+
+        xml_hash = Hash.new()
+        xml_hash = {
+          "filelists" => {
+            "xml"   => "",
+            "gz"    => "",
+            "size"  => "",
+            "osize" => "",
+          },
+          "other"     => {
+            "xml"   => "",
+            "gz"    => "",
+            "size"  => "",
+            "osize" => "",
+          },
+          "primary"   => {
+            "xml"   => "",
+            "gz"    => "",
+            "size"  => "",
+            "osize" => "",
+          }
+        }
+
+        erb_files.each { |f|
+          next if f == "repomd"
+          xml_hash[f]["gz"] = Digest::SHA256.file("#{path}/#{f}.xml.tmp.gz").hexdigest
+          xml_hash[f]["xml"] = Digest::SHA256.file("#{path}/#{f}.xml.tmp").hexdigest
+          xml_hash[f]["size"] = File.size?("#{path}/#{f}.xml.tmp.gz")
+          xml_hash[f]["osize"] = File.size?("#{path}/#{f}.xml.tmp")
+        }
+
+        erb_two = ERB.new(File.open("#{template_dir}/repomd.xml.erb") { |file|
+          file.read
+        }).result(binding)
+
+        r_file = File.new("#{path}/repomd.xml.tmp","wb")
+        r_file.puts erb_two
+        r_file.close
+
+        Dir.glob("#{path}/*.gz") do |f|
+          if f =~ /gz$/
+            unless f =~ /tmp\.gz$/
+              FileUtils.rm(f)
+            end
+          end
+        end
+
+        erb_files.each { |f|
+          FileUtils.rm("#{path}/#{f}.xml.tmp")
+          FileUtils.move("#{path}/#{f}.xml.tmp.gz", "#{path}/" + xml_hash[f]["gz"] + "-#{f}.xml.gz")
+        }
+        FileUtils.move("#{path}/repomd.xml.tmp", "#{path}/repomd.xml")
+      }
+    }
+  end
+end
 
 module Debian
   def build_apt_repo(path, component, arch, release, gpg, silent)
@@ -265,6 +355,7 @@ module PRM
     include Debian
     include DHO
     include SNAP
+    include Redhat
 
     attr_accessor :path
     attr_accessor :type
@@ -278,9 +369,8 @@ module PRM
     attr_accessor :directory
 
     def create
-      parch,pcomponent,prelease = _parse_vars(arch,component,release)
-
       if "#{@type}" == "deb"
+        parch,pcomponent,prelease = _parse_vars(arch,component,release)
         if snapshot
           snapshot_to(path,pcomponent,prelease,snapshot,type)
         else
@@ -297,7 +387,10 @@ module PRM
       elsif "#{@type}" == "sync"
         sync_to_dho(path, accesskey, secretkey,pcomponent,prelease)
       elsif "#{@type}" == "rpm"
-        # add rpm stuff here
+        component = "test"
+        parch,prelease = _parse_vars(arch,component,release)
+        silent = false
+        build_rpm_repo(path,parch,prelease,gpg,silent)
       end
     end
 
