@@ -8,6 +8,7 @@ require 'find'
 require 'thread'
 require 'peach' 
 require 'aws/s3'
+require 'arr-pm'
 
 module Redhat
   def build_rpm_repo(path,arch,release,gpg,silent)
@@ -17,6 +18,7 @@ module Redhat
         path = path + "/repodata/"
         FileUtils.mkpath(path)
         timestamp = Time.now.to_i
+        package_hash = Hash.new
 
         template_dir = File.join(File.dirname(__FILE__), "..", "..", "templates")
 
@@ -42,56 +44,52 @@ module Redhat
             File.open("#{sha256_path}/#{trpm}", 'w') { |file| file.write(sha256sum) }
           end
 
-          name = String.new
-          rpm_arch = String.new
-          version = String.new
-          if trpm =~ /^([a-z]+)-(\d+[.]\d+-(?:[a-z]+\+)?\d+)[.](\w+)[.]\w*$/
-             name = $1 
-             version = $2
-             rpm_arch = $3
-          end
+          #name = String.new
+          #rpm_arch = String.new
+          #version = String.new
+          #if trpm =~ /^([a-z]+)-(\d+[.]\d+-(?:[a-z]+\+)?\d+)[.](\w+)[.]\w*$/
+          #   name = $1 
+          #   version = $2
+          #   rpm_arch = $3
+          #end
 
+          nrpm = RPM::File.new(rpm)
+          sheader = nrpm.lead.length + nrpm.signature.length
+          eheader = sheader + nrpm.header.length
+          #info = Hash[*nrpm.header.tags.collect { |t| [t.tag, t.value] }.flatten]
+          info = Hash[*nrpm.header.tags.collect { |t| [t.tag, t.value] }.inject([]) { |m,v| m + v }]
           package_hash = {
             trpm => {
-              "sha256"  => sha256sum,
-              "name"    => name,
-              "arch"    => rpm_arch,
-              "version" => version
+              "sha256"       => sha256sum,
+              "name"         => info[:name],
+              "arch"         => info[:arch],
+              "version"      => info[:version],
+              "release"      => info[:release],
+              "start_header" => sheader,
+              "end_header"   => eheader,
+              "files"        => nrpm.files,
+              "license"      => info[:license],
+              "vendor"       => info[:vendor],
+              "buildtime"    => info[:buildtime],
+              "buildhost"    => info[:buildhost],
+              "requires"     => nrpm.requires,
+              "conflicts"    => nrpm.conflicts,
+              "provides"     => nrpm.provides,
+              "epoch"        => info[:epochnum],
+              "sourcerpm"    => info[:sourcerpm],
+              "buildtime"    => info[:buildtime],
+              "installtime"  => info[:installtime],
+              "url"          => info[:url],
+              "summary"      => info[:summary],
+              "description"  => info[:description],
+              "packager"     => info[:packager],
+              "size"         => info[:size],
+              "longsize"     => info[:longsize],
+              "filesizes"    => info[:filesizes]
             }
           }
-
-          erb_files.each { |f|
-            erb = ERB.new(File.open("#{template_dir}/#{f}.xml.erb") { |file|
-              file.read
-            }).result(binding)
-
-            release_file = File.new("#{path}/#{f}.xml.tmp","wb")
-            release_file.puts erb
-            release_file.close
-          }
+          #puts package_hash.inspect
         end
-
-        erb_files.each { |f|
-          Zlib::GzipWriter.open("#{path}/#{f}.xml.tmp.gz") do |gz|
-            unless File.exists?("#{path}/#{f}.xml.tmp") do
-              erb_files.each { |f|
-                erb = ERB.new(File.open("#{template_dir}/#{f}.xml.erb") { |file|
-                  file.read
-                }).result(binding)
-
-                release_file = File.new("#{path}/#{f}.xml.tmp","wb")
-                release_file.puts erb
-                release_file.close
-              }
-            end
-
-            f = File.new("#{path}/#{f}.xml.tmp", "w+")
-            f.each do |line|
-              gz.write(line)
-            end
-          end
-          end
-        }
 
         xml_hash = Hash.new()
         xml_hash = {
@@ -116,7 +114,23 @@ module Redhat
         }
 
         erb_files.each { |f|
-          next if f == "repomd"
+          erb = ERB.new(File.open("#{template_dir}/#{f}.xml.erb") { |file|
+            file.read
+          }).result(binding)
+
+          release_file = File.new("#{path}/#{f}.xml.tmp","wb")
+          release_file.puts erb
+          release_file.close 
+
+          Zlib::GzipWriter.open("#{path}/#{f}.xml.tmp.gz") do |gz|
+            ff = File.new("#{path}/#{f}.xml.tmp", "r")
+            ff.each do |line|
+              gz.write(line)
+            end
+          end
+        }
+
+        erb_files.each { |f|  
           xml_hash[f]["gz"] = Digest::SHA256.file("#{path}/#{f}.xml.tmp.gz").hexdigest
           xml_hash[f]["xml"] = Digest::SHA256.file("#{path}/#{f}.xml.tmp").hexdigest
           xml_hash[f]["size"] = File.size?("#{path}/#{f}.xml.tmp.gz")
@@ -139,9 +153,9 @@ module Redhat
           end
         end
 
-        erb_files.each { |f|
-          FileUtils.rm("#{path}/#{f}.xml.tmp")
+        erb_files.each { |f| 
           FileUtils.move("#{path}/#{f}.xml.tmp.gz", "#{path}/" + xml_hash[f]["gz"] + "-#{f}.xml.gz")
+          FileUtils.rm("#{path}/#{f}.xml.tmp")
         }
         FileUtils.move("#{path}/repomd.xml.tmp", "#{path}/repomd.xml")
       }

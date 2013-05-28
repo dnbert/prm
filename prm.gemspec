@@ -12,5 +12,6 @@ Gem::Specification.new do |s|
   s.add_dependency('peach')
   s.add_dependency('aws-s3')
   s.add_dependency('clamp')
+  s.add_dependency('arr-pm')
   s.homepage    = 'https://github.com/dnbert/prm'
 end

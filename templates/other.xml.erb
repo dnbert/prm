@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<otherdata xmlns="http://linux.duke.edu/metadata/other" packages="0">
+<otherdata xmlns="http://linux.duke.edu/metadata/other" packages="<%=package_hash.keys.size%>">
 <% package_hash.each_pair do |k,v| %>
 <package pkgid="<%= package_hash[k]['sha256'] %>" name="<%= package_hash[k]['name'] %>" arch="<%= package_hash[k]['arch'] %>">
-	<version epoch="0" ver="1.0" rel="1"/>
+	<version epoch="<%=package_hash[k]["epoch"]%>" ver="<%=package_hash[k]["version"]%>" rel="<%=package_hash[k]["release"]%>"/>
 </package>
 <% end %>
 </otherdata>

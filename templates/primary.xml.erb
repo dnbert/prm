@@ -4,26 +4,30 @@
 <package type="rpm">
   <name><%= package_hash[k]['name'] %></name>
   <arch><%= package_hash[k]['arch'] %></arch>
-  <version epoch="0" ver="1.0" rel="1"/>
+  <version epoch="<%= package_hash[k]['epoch'] %>" ver="<%= package_hash[k]['version'] %>" rel="<%= package_hash[k]['release'] %>"/>
   <checksum type="sha256" pkgid="YES"><%= package_hash[k]['sha256'] %></checksum>
-  <summary>no description given</summary>
-  <description>no description given</description>
+  <summary><%= package_hash[k]['summary'] %></summary>
+  <description><%= package_hash[k]['description'] %></description>
   <packager></packager>
-  <url>http://example.com/no-uri-given</url>
-  <time/>
-  <size/>
-<location href="<%=k%>"/>
+  <url><%= package_hash[k]['url'] %></url>
+  <time file="<%= package_hash[k]['installtime'] %>" build="<%= package_hash[k]['buildtime'] %>"/>
+  <size package="<%= package_hash[k]['size'] %>" installed="<%= package_hash[k]['longsize'] %>" archive="<%= package_hash[k]['archivesize'] %>"/>
+  <location href="<%=k%>"/>
   <format>
-    <rpm:license>unknown</rpm:license>
-    <rpm:vendor></rpm:vendor>
-    <rpm:group>default</rpm:group>
-    <rpm:buildhost>localhost</rpm:buildhost>
-    <rpm:sourcerpm><%= package_hash[k]['name'] %>-<%= package_hash[k]['version'] %>.src.rpm</rpm:sourcerpm>
-    <rpm:provides>
-      <rpm:entry name="<%= package_hash[k]['name'] %>" flags="EQ" epoch="0" ver="1.0" rel="1"/>
-      <rpm:entry name="<%= package_hash[k]['name'] %>(<%= package_hash[k]['arch']%>)" flags="EQ" epoch="0" ver="1.0" rel="1"/>
+    <rpm:license><%= package_hash[k]['license'] %></rpm:license>
+    <rpm:vendor><%= package_hash[k]['vendor'] %></rpm:vendor>
+    <rpm:group><%= package_hash[k]['buildgroup'] %></rpm:group>
+    <rpm:buildhost><%= package_hash[k]['buildhost'] %></rpm:buildhost>
+    <rpm:sourcerpm><%= package_hash[k]['sourcerpm'] %></rpm:sourcerpm>
+    <rpm:provides><% package_hash[k]['provides'].each do |one,two,three| %>
+<% if two == "=" %><% two = "EQ" %><% elsif two == ">=" %><% two = "GE" %><% elsif two == "=<" %><% two = "LE" %>
+	<% end %><rpm:entry name="<%= package_hash[k]['name'] %>" flags="<%= two %>" epoch="<%= package_hash[k]['epoch'] %>" ver="<%= package_hash[k]['version'] %>" rel="<%= package_hash[k]['release'] %>"/><%end%>
     </rpm:provides>
+    <rpm:requires><% package_hash[k]['requires'].each do |one,two,three| %>
+	    <% if two == "=" %><%two = "EQ" %><% elsif two == ">="%><% two = "GE" %><% elsif two == "=<" %><% two = "LE" %> <% else %> <% two = nil %><% end %>
+	<% if two.nil? %><rpm:entry name="<%=one%>"/>
+	<% else %><rpm:entry name="<%= package_hash[k]['name'] %>" flags="<%two%>" epoch="<%= package_hash[k]['epoch'] %>" ver="<%= package_hash[k]['version'] %>" rel="<%= package_hash[k]['release'] %>"/><% end %><% end %>
+    </rpm:requires>
   </format>
-</package>
-<% end %>
+</package><% end %>
 </metadata>
