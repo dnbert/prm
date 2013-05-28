@@ -44,22 +44,12 @@ module Redhat
             File.open("#{sha256_path}/#{trpm}", 'w') { |file| file.write(sha256sum) }
           end
 
-          #name = String.new
-          #rpm_arch = String.new
-          #version = String.new
-          #if trpm =~ /^([a-z]+)-(\d+[.]\d+-(?:[a-z]+\+)?\d+)[.](\w+)[.]\w*$/
-          #   name = $1 
-          #   version = $2
-          #   rpm_arch = $3
-          #end
-
           nrpm = RPM::File.new(rpm)
           sheader = nrpm.lead.length + nrpm.signature.length
           eheader = sheader + nrpm.header.length
-          #info = Hash[*nrpm.header.tags.collect { |t| [t.tag, t.value] }.flatten]
+          
           info = Hash[*nrpm.header.tags.collect { |t| [t.tag, t.value] }.inject([]) { |m,v| m + v }]
-          package_hash = {
-            trpm => {
+          package_hash[trpm] = {
               "sha256"       => sha256sum,
               "name"         => info[:name],
               "arch"         => info[:arch],
@@ -86,9 +76,8 @@ module Redhat
               "size"         => info[:size],
               "longsize"     => info[:longsize],
               "filesizes"    => info[:filesizes]
-            }
           }
-          #puts package_hash.inspect
+          
         end
 
         xml_hash = Hash.new()
