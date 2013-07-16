@@ -10,7 +10,7 @@ rescue LoadError
   require 'prm'
 end
 
-version_info = "0.1.2"
+version_info = "0.1.3"
 
 class Main < Clamp::Command
   option ["-t", "--type"], "TYPE", "Type of repo to create", :required => true
@@ -22,10 +22,14 @@ class Main < Clamp::Command
   option ["--secretkey"], "SECRET KEY", "DHO/S3 Secret Key", :default => false
   option ["-d", "--directory"], "DIRECTORY", "Move packages from directory to target", :default => false
   option ["-s", "--snapshot"], "COMPONENT", "Creates a snapshot of a component", :default => false
+  option ["-e", "--recent"], :flag, "Snapshot the most recent unique packages"
   option ["-k", "--gpg"], :flag,  "Sign release files with users GPG key", :default => false
   option ["-g", "--generate"], :flag , "Generate new repository"
 
   def execute
+	if recent? && !snapshot
+		raise "--snapshot is required for --recent\n"
+	end
     r = PRM::Repo.new
     r.component = component
     r.release = release
@@ -44,6 +48,9 @@ class Main < Clamp::Command
     unless snapshot.nil?
       r.snapshot = snapshot
     end
+	if recent?
+	  r.recent = recent?
+	end
     unless directory.nil?
       r.directory = directory
     end

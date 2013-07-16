@@ -327,7 +327,7 @@ module Debian
 end
 
 module SNAP
-  def snapshot_to(path,component,release,snapname,type)
+  def snapshot_to(path,component,release,snapname,type,recent)
     if type != "deb"
       puts "Only deb supported"
       return
@@ -338,7 +338,7 @@ module SNAP
       now = time.strftime("%Y-%m-%d-%H-%M")
       new_snap = "#{snapname}-#{now}"
 
-      if File.exists?("#{path}/dists/#{r}/#{snapname}") 
+      if File.exists?("#{path}/dists/#{r}/#{snapname}") && !File.symlink?("#{path}/dists/#{r}/#{snapname}") 
         puts "Snapshot target is a filesystem, remove it or rename your snap target"
         return
       end
@@ -347,9 +347,54 @@ module SNAP
         Dir.mkdir("#{path}/dists/#{r}/#{new_snap}")
       end
 
-      FileUtils.cp_r(Dir["#{path}/dists/#{r}/#{component}/*"], "#{path}/dists/#{r}/#{new_snap}")
-      FileUtils.ln_s "#{new_snap}", "#{path}/dists/#{r}/#{snapname}", :force => true
-      puts "Created #{snapname} snapshot of #{component}\n"
+      if File.exists?("#{path}/dists/#{r}/#{snapname}")
+          FileUtils.rm("#{path}/dists/#{r}/#{snapname}")
+      end
+
+      if recent
+        component.each do |c|
+            arch.each do |a|
+                source_dir = "#{path}/dists/#{r}/#{c}/binary-#{a}"
+                target_dir = "#{path}/dists/#{r}/#{new_snap}/binary-#{a}"
+                pfiles = Dir.glob("#{source_dir}/*").sort_by { |f| File.mtime(f) }
+
+                package_hash = Hash.new
+                pfiles.each do |p|
+                    file = p.split(/[_]/)
+                    mtime = File.mtime(p)
+                    date_in_mil = mtime.to_f
+                    
+                    if !package_hash.has_key?(file[0])
+                        package_hash[file[0]] = { "name" => p, "time" => date_in_mil }
+                    else
+                        if date_in_mil > package_hash[file[0]]["time"]
+                            package_hash[file[0]] = { "name" => p, "time" => date_in_mil }
+                        end
+                    end
+                end
+
+                if !File.exists?(target_dir)
+                    FileUtils.mkdir_p(target_dir)
+                end
+
+                package_hash.each do |key,value|
+                    value["name"].each do |k|
+                        target_file = k.split("/").last
+                        FileUtils.cp(k, "#{target_dir}/#{target_file}")
+                    end
+                end
+
+            end
+
+            FileUtils.ln_s "#{new_snap}", "#{path}/dists/#{r}/#{snapname}", :force => true
+            puts "Created #{snapname} snapshot of #{component} with --recent flag\n"
+        end
+      else
+        FileUtils.cp_r(Dir["#{path}/dists/#{r}/#{component}/*"], "#{path}/dists/#{r}/#{new_snap}")
+        FileUtils.rm("#{path}/dists/#{r}/#{snapname}")
+        FileUtils.ln_s "#{new_snap}", "#{path}/dists/#{r}/#{snapname}", :force => true
+        puts "Created #{snapname} snapshot of #{component}\n"
+      end
     end
   end
 end
@@ -421,12 +466,13 @@ module PRM
     attr_accessor :accesskey
     attr_accessor :snapshot
     attr_accessor :directory
+    attr_accessor :recent
 
     def create
       if "#{@type}" == "deb"
         parch,pcomponent,prelease = _parse_vars(arch,component,release)
         if snapshot
-          snapshot_to(path,pcomponent,prelease,snapshot,type)
+          snapshot_to(path,pcomponent,prelease,snapshot,type,recent)
         else
           if directory
             silent = true

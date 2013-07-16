@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name        = 'prm'
-  s.version     = '0.1.2'
-  s.date        = '2013-05-11'
+  s.version     = '0.1.3'
+  s.date        = '2013-07-15'
   s.summary     = "Package Repository Manager"
   s.description = "PRM (Package Repository Manager) is an Operating System independent Package Repository tool. PRM supports Repository syncing to DreamObjects"
   s.authors     = ["Brett Gailey"]
