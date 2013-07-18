@@ -338,6 +338,14 @@ module SNAP
       now = time.strftime("%Y-%m-%d-%H-%M")
       new_snap = "#{snapname}-#{now}"
 
+
+      component.each do |c|
+          if !File.exists?("#{path}/dists/#{r}/#{c}")
+              puts "Component doesn't exist! To snapshot you need to have an existing component\n"
+              return
+          end
+      end
+
       if File.exists?("#{path}/dists/#{r}/#{snapname}") && !File.symlink?("#{path}/dists/#{r}/#{snapname}") 
         puts "Snapshot target is a filesystem, remove it or rename your snap target"
         return
@@ -391,7 +399,9 @@ module SNAP
         end
       else
         FileUtils.cp_r(Dir["#{path}/dists/#{r}/#{component}/*"], "#{path}/dists/#{r}/#{new_snap}")
-        FileUtils.rm("#{path}/dists/#{r}/#{snapname}")
+        if File.exists?("#{path}/dists/#{r}/#{snapname}")
+            FileUtils.rm("#{path}/dists/#{r}/#{snapname}")
+        end
         FileUtils.ln_s "#{new_snap}", "#{path}/dists/#{r}/#{snapname}", :force => true
         puts "Created #{snapname} snapshot of #{component}\n"
       end
