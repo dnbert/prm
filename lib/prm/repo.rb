@@ -371,8 +371,9 @@ module SNAP
                     file = p.split(/[_]/)
                     mtime = File.mtime(p)
                     date_in_mil = mtime.to_f
-                    
-                    if !package_hash.has_key?(file[0])
+                    if File.directory?(p)
+                      next
+                    elsif !package_hash.has_key?(file[0])
                         package_hash[file[0]] = { "name" => p, "time" => date_in_mil }
                     else
                         if date_in_mil > package_hash[file[0]]["time"]
@@ -396,6 +397,9 @@ module SNAP
 
             FileUtils.ln_s "#{new_snap}", "#{path}/dists/#{r}/#{snapname}", :force => true
             puts "Created #{snapname} snapshot of #{component} with --recent flag\n"
+            self.component = snapshot
+            self.snapshot = false
+            self.create
         end
       else
         FileUtils.cp_r(Dir["#{path}/dists/#{r}/#{component}/*"], "#{path}/dists/#{r}/#{new_snap}")
