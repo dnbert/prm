@@ -278,17 +278,15 @@ module Debian
     release_info = Hash.new()
     unreasonable_array = Array.new
     unreasonable_array = ["Packages", "Packages.gz", "Release"]
-
-    component.clear
-
+    component_ar = Array.new
     Dir.glob(path + "/dists/" + release + "/*").select { |f|
       f.slice!(path + "/dists/" + release + "/")
       unless f == "Release" or f == "Release.gpg"
-        component << f
+        component_ar << f
       end
     }
 
-    component.each do |c| 
+    component_ar.each do |c| 
       arch.each do |ar|
         unreasonable_array.each do |unr|
           tmp_path = "#{path}/dists/#{release}/#{c}/binary-#{ar}"
@@ -355,13 +353,10 @@ module SNAP
         Dir.mkdir("#{path}/dists/#{r}/#{new_snap}")
       end
 
-      if File.exists?("#{path}/dists/#{r}/#{snapname}")
-          FileUtils.rm("#{path}/dists/#{r}/#{snapname}")
-      end
-
       if recent
         component.each do |c|
-            arch.each do |a|
+          arch_ar = arch.split(",")
+          arch_ar.each do |a|
                 source_dir = "#{path}/dists/#{r}/#{c}/binary-#{a}"
                 target_dir = "#{path}/dists/#{r}/#{new_snap}/binary-#{a}"
                 pfiles = Dir.glob("#{source_dir}/*").sort_by { |f| File.mtime(f) }
@@ -394,21 +389,17 @@ module SNAP
                 end
 
             end
-
-            FileUtils.ln_s "#{new_snap}", "#{path}/dists/#{r}/#{snapname}", :force => true
-            puts "Created #{snapname} snapshot of #{component} with --recent flag\n"
-            self.component = snapshot
-            self.snapshot = false
-            self.create
         end
       else
-        FileUtils.cp_r(Dir["#{path}/dists/#{r}/#{component}/*"], "#{path}/dists/#{r}/#{new_snap}")
-        if File.exists?("#{path}/dists/#{r}/#{snapname}")
-            FileUtils.rm("#{path}/dists/#{r}/#{snapname}")
-        end
-        FileUtils.ln_s "#{new_snap}", "#{path}/dists/#{r}/#{snapname}", :force => true
-        puts "Created #{snapname} snapshot of #{component}\n"
+      	FileUtils.cp_r(Dir["#{path}/dists/#{r}/#{component}/*"], "#{path}/dists/#{r}/#{new_snap}")
       end
+
+      if File.exists?("#{path}/dists/#{r}/#{snapname}")
+          FileUtils.rm("#{path}/dists/#{r}/#{snapname}")
+      end
+
+      FileUtils.ln_s "#{new_snap}", "#{path}/dists/#{r}/#{snapname}", :force => true
+      puts "Created #{snapname} snapshot of #{component}\n"
     end
   end
 end
@@ -487,17 +478,17 @@ module PRM
         parch,pcomponent,prelease = _parse_vars(arch,component,release)
         if snapshot
           snapshot_to(path,pcomponent,prelease,snapshot,type,recent)
-        else
-          if directory
-            silent = true
-            build_apt_repo(path,pcomponent,parch,prelease,gpg,silent)
-            if move_packages(path,pcomponent,parch,prelease,directory) == false
-              return
-            end
-          end
-          silent = false
+	  pcomponent = snapshot
+	end
+        if directory
+          silent = true
           build_apt_repo(path,pcomponent,parch,prelease,gpg,silent)
+          if move_packages(path,pcomponent,parch,prelease,directory) == false
+            return
+          end
         end
+        silent = false
+        build_apt_repo(path,pcomponent,parch,prelease,gpg,silent)
       elsif "#{@type}" == "sync"
         sync_to_dho(path, accesskey, secretkey,pcomponent,prelease)
       elsif "#{@type}" == "rpm"
