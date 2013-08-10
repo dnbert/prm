@@ -1,28 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <repomd xmlns="http://linux.duke.edu/metadata/repo" xmlns:rpm="http://linux.duke.edu/metadata/rpm">
- <revision>1368948492</revision>
-<data type="filelists">
-  <checksum type="sha256"><%=xml_hash["filelists"]["gz"]%></checksum>
-  <open-checksum type="sha256"><%=xml_hash["filelists"]["xml"]%></open-checksum>
-  <location href="repodata/<%=xml_hash["filelists"]["gz"]%>-filelists.xml.gz"/>
-  <timestamp><%=timestamp%></timestamp>
-  <size><%=xml_hash["filelists"]["size"]%></size>
-  <open-size><%=xml_hash["filelists"]["osize"]%></open-size>
-</data>
-<data type="primary">
-  <checksum type="sha256"><%=xml_hash["primary"]["gz"]%></checksum>
-  <open-checksum type="sha256"><%=xml_hash["primary"]["xml"]%></open-checksum>
-  <location href="repodata/<%=xml_hash["primary"]["gz"]%>-primary.xml.gz"/>
-  <timestamp><%=timestamp%></timestamp>
-  <size><%=xml_hash["primary"]["size"]%></size>
-  <open-size><%=xml_hash["primary"]["osize"]%></open-size>
-</data>
-<data type="other">
-  <checksum type="sha256"><%=xml_hash["other"]["gz"]%></checksum>
-  <open-checksum type="sha256"><%=xml_hash["other"]["xml"]%></open-checksum>
-  <location href="repodata/<%=xml_hash["other"]["gz"]%>-other.xml.gz"/>
-  <timestamp><%=timestamp%></timestamp>
-  <size><%=xml_hash["other"]["size"]%></size>
-  <open-size><%=xml_hash["other"]["osize"]%></open-size>
-</data>
+    <revision><%=timestamp%></revision>
+<% repomd_xml.each do |package| %>
+<%= package %>
+<% end %>
 </repomd>

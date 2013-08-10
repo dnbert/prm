@@ -1,18 +1,19 @@
 Gem::Specification.new do |s|
   s.name        = 'prm'
-  s.version     = '0.1.6'
-  s.date        = '2013-07-19'
+  s.version     = '0.2.0'
+  s.date        = '2013-08-09'
   s.summary     = "Package Repository Manager"
-  s.description = "PRM (Package Repository Manager) is an Operating System independent Package Repository tool. PRM supports Repository syncing to DreamObjects"
+  s.description = %Q(PRM (Package Repository Manager) is an Operating System independent Package Repository tool. It allows you to quickly build Debian and Yum Package Repositories. PRM supports Repository syncing to DreamObjects )
   s.authors     = ["Brett Gailey"]
   s.email       = 'brett.gailey@dreamhost.com'
-  s.files       = [ "lib/prm/repo.rb", "lib/prm.rb", "templates/deb_release.erb" ]
+  s.files       = [ "lib/prm/repo.rb", "lib/prm.rb", "templates/deb_release.erb", "lib/prm/rpm.rb" ]
   s.bindir	  = 'bin'
   s.executables = ['prm']
   s.add_dependency('peach')
   s.add_dependency('aws-s3')
   s.add_dependency('clamp')
   s.add_dependency('arr-pm')
+  s.add_dependency('sqlite3')
   s.homepage    = 'https://github.com/dnbert/prm'
   s.license = 'MIT'
 end

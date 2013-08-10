@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<filelists xmlns="http://linux.duke.edu/metadata/filelists" packages="<%=package_hash.keys.size%>">
-<% package_hash.each_pair do |k,v| %>
-<package pkgid="<%= package_hash[k]['sha256'] %>" name="<%= package_hash[k]['name'] %>" arch="<%= package_hash[k]['arch'] %>">
-	<version epoch="<%=package_hash[k]["epoch"]%>" ver="<%=package_hash[k]["version"]%>" rel="<%=package_hash[k]["release"]%>"/>
-
-<% package_hash[k]["files"].each do |f| %>	<file><%=f%></file><%="\n"%><%end%>
-</package><% end %>
+<filelists xmlns="http://linux.duke.edu/metadata/filelists" packages="<%=package_count%>">
+<% filelists_xml.each do |package| %>
+<%= package %>
+<% end %>
 </filelists>

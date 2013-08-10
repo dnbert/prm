@@ -13,14 +13,14 @@ end
 class Main < Clamp::Command
   option ["-t", "--type"], "TYPE", "Type of repo to create", :required => true
   option ["-p", "--path"], "PATH", "Path to repo location", :required => true
-  option ["-c", "--component"], "COMPONENT", "Component to create", :required => true
   option ["-r", "--release"], "RELEASE", "OS version to create", :required => true
   option ["-a", "--arch"], "ARCH", "Architecture of repo contents", :required => true
+  option ["-c", "--component"], "COMPONENT", "Component to create [DEB ONLY]"
   option ["--accesskey"], "ACCESS KEY", "DHO/S3 Access Key", :default => false
   option ["--secretkey"], "SECRET KEY", "DHO/S3 Secret Key", :default => false
   option ["-d", "--directory"], "DIRECTORY", "Move packages from directory to target", :default => false
   option ["-s", "--snapshot"], "COMPONENT", "Creates a snapshot of a component", :default => false
-  option ["-e", "--recent"], :flag, "Snapshot the most recent unique packages"
+  option ["-e", "--recent"], :flag, "Snapshot the most recent unique packages", :default => false
   option ["-k", "--gpg"], :flag,  "Sign release files with users GPG key", :default => false
   option ["-g", "--generate"], :flag , "Generate new repository"
 
@@ -28,8 +28,12 @@ class Main < Clamp::Command
 	if recent? && !snapshot
 		raise "--snapshot is required for --recent\n"
 	end
+
+	if type == "deb" && !component
+		raise "--deb option required the --component option!"
+	end
+
     r = PRM::Repo.new
-    r.component = component
     r.release = release
     r.arch = arch
     r.type = type
@@ -46,6 +50,9 @@ class Main < Clamp::Command
     unless snapshot.nil?
       r.snapshot = snapshot
     end
+	unless component.nil?
+	  r.component = component
+	end
 	if recent?
 	  r.recent = recent?
 	end
