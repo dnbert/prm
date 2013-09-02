@@ -9,7 +9,7 @@ require 'thread'
 require 'peach' 
 require 'aws/s3'
 require 'arr-pm'
-require_relative "rpm"
+require File.join(File.dirname(__FILE__), 'rpm.rb')
 
 module Debian
     def build_apt_repo(path, component, arch, release, gpg, silent)
@@ -80,7 +80,6 @@ module Debian
         end
 
         npath = "dists/" + r + "/" + c + "/" + "binary-" + a + "/"
-        packages_text = []
 
         d = File.open(pfpath, "w+")	
         write_mutex = Mutex.new
