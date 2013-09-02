@@ -80,7 +80,6 @@ module Debian
         end
 
         npath = "dists/" + r + "/" + c + "/" + "binary-" + a + "/"
-        packages_text = []
 
         d = File.open(pfpath, "w+")	
         write_mutex = Mutex.new
@@ -132,8 +131,6 @@ module Debian
     end
 
     def generate_release(path,release,component,arch)
-        date = Time.now.utc
-
         release_info = Hash.new()
         unreasonable_array = Array.new
         unreasonable_array = ["Packages", "Packages.gz", "Release"]
