@@ -22,7 +22,10 @@ class Main < Clamp::Command
   option ["-s", "--snapshot"], "COMPONENT", "Creates a snapshot of a component", :default => false
   option ["-e", "--recent"], :flag, "Snapshot the most recent unique packages", :default => false
   option ["-k", "--gpg"], :flag,  "Sign release files with users GPG key", :default => false
-  option ["-g", "--generate"], :flag , "Generate new repository"
+  option ["-g", "--generate"], :flag , "[DEPRECATED 0.2.4]" do
+	  warn "WARNING: Generate option (--generate) is deprecated\n" +
+	  "This option will be removed in next stable release (0.3.0)\n"
+  end
 
   def execute
 	if recent? && !snapshot

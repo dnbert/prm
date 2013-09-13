@@ -71,7 +71,6 @@ Commands
 --arch, -a <s>:   		Architecture for repository (Multi arch supported by comma)
 --component, -c <s>:    Component to create [DEB ONLY] (Multi component supported by comma)
 --gpg:   				Sign release files with a GPG key (Expects GPG key to be available)
---generate, -g:   		Create new repository
 --version, -v:   		Print version and exit
 --help, -h:   			Show this message
 --accesskey, -e <s>:   Access Key for DreamObjects
@@ -84,9 +83,9 @@ Commands
 Example
 ===
 ```
-prm --type deb --path pool --component dev,staging --release precise --arch amd64 --gpg --generate
+prm --type deb --path pool --component dev,staging --release precise --arch amd64 --gpg
 
-prm -t deb -p pool -c stable -r precise -a amd64 --directory unstable -g
+prm -t deb -p pool -c stable -r precise -a amd64 --directory unstable
 
 prm -t rpm -a x86_64 -r centos6 -g -p pool
 ```
