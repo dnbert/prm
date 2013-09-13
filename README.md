@@ -87,5 +87,5 @@ prm --type deb --path pool --component dev,staging --release precise --arch amd6
 
 prm -t deb -p pool -c stable -r precise -a amd64 --directory unstable
 
-prm -t rpm -a x86_64 -r centos6 -g -p pool
+prm -t rpm -a x86_64 -r centos6 -p pool
 ```
