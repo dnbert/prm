@@ -12,7 +12,7 @@ require 'arr-pm'
 require File.join(File.dirname(__FILE__), 'rpm.rb')
 
 module Debian
-    def build_apt_repo(path, component, arch, release, gpg, silent)
+    def build_apt_repo(path, component, arch, release, gpg, silent, nocache)
         release.each { |r|
             component.each { |c|
                 arch.each { |a|
@@ -90,18 +90,36 @@ module Debian
             md5sum_path = path + "/dists/" + r + "/" + c + "/" + "binary-" + a + "/md5-results/" + tdeb
 
             FileUtils.mkdir_p "tmp/#{tdeb}/"
-            FileUtils.mkdir_p path + "/dists/" + r + "/" + c + "/" + "binary-" + a + "/md5-results/"
+            if not nocache
+                FileUtils.mkdir_p path + "/dists/" + r + "/" + c + "/" + "binary-" + a + "/md5-results/"
+            end
             `ar p #{deb} control.tar.gz | tar zx -C tmp/#{tdeb}/`
 
             init_size = `wc -c < #{deb}`
 
-            if File.exists? md5sum_path
+            if deb.split("/").last.to_s == md5sum_path.split("/").last.to_s
+
+            end
+            
+            if File.exists?("#{md5sum_path}") && nocache.nil? 
                 file = File.open(md5sum_path, 'r')
                 md5sum = file.read
                 file.close
             else
                 md5sum = Digest::MD5.file(deb)
-                File.open(md5sum_path, 'w') { |file| file.write(md5sum) }
+                if nocache.nil?
+                    File.open(md5sum_path, 'w') { |file| file.write(md5sum) }
+                end
+            end
+
+            if File.exists?("#{md5sum_path}") && nocache
+                file = File.open(md5sum_path, 'r')
+                temp_md5sum = file.read
+                file.close
+                
+                if md5sum != temp_md5sum
+                    puts "WARN: md5sum mismatch on #{deb}\n"
+                end
             end
 
             package_info = [
@@ -330,6 +348,7 @@ module PRM
         attr_accessor :snapshot
         attr_accessor :directory
         attr_accessor :recent
+        attr_accessor :nocache
 
         def create
             if "#{@type}" == "deb"
@@ -340,13 +359,13 @@ module PRM
                 end
                 if directory
                     silent = true
-                    build_apt_repo(path,pcomponent,parch,prelease,gpg,silent)
+                    build_apt_repo(path,pcomponent,parch,prelease,gpg,silent,nocache)
                     if move_packages(path,pcomponent,parch,prelease,directory) == false
                         return
                     end
                 end
                 silent = false
-                build_apt_repo(path,pcomponent,parch,prelease,gpg,silent)
+                build_apt_repo(path,pcomponent,parch,prelease,gpg,silent,nocache)
             elsif "#{@type}" == "sync"
                 sync_to_dho(path, accesskey, secretkey,pcomponent,prelease)
             elsif "#{@type}" == "rpm"

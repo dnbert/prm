@@ -16,6 +16,7 @@ class Main < Clamp::Command
   option ["-r", "--release"], "RELEASE", "OS version to create", :required => true
   option ["-a", "--arch"], "ARCH", "Architecture of repo contents", :required => true
   option ["-c", "--component"], "COMPONENT", "Component to create [DEB ONLY]"
+  option ["--nocache"], :flag, "Don't cache md5 sums [DEB ONLY]"
   option ["--accesskey"], "ACCESS KEY", "DHO/S3 Access Key", :default => false
   option ["--secretkey"], "SECRET KEY", "DHO/S3 Secret Key", :default => false
   option ["-d", "--directory"], "DIRECTORY", "Move packages from directory to target", :default => false
@@ -62,6 +63,9 @@ class Main < Clamp::Command
     unless directory.nil?
       r.directory = directory
     end
+	if nocache?
+		r.nocache = nocache?
+	end
 
     r.create
   end
