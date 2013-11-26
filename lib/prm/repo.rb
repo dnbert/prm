@@ -32,8 +32,8 @@ module Debian
             }
             generate_release(path,r,component,arch)
 
-            if gpg == true
-                generate_release_gpg(path,r)
+            unless gpg == false
+                generate_release_gpg(path,r, gpg)
             end
         }
     end
@@ -193,9 +193,14 @@ module Debian
     end
 
     # We expect that GPG is installed and a key has already been made
-    def generate_release_gpg(path,release)
+    def generate_release_gpg(path,release,gpg)
         Dir.chdir("#{path}/dists/#{release}") do
-            system "gpg --yes --output Release.gpg -b Release"
+            if gpg.nil?
+              sign_cmd = "gpg --yes --output Release.gpg -b Release"
+            else
+              sign_cmd = "gpg -u #{gpg} --yes --output Release.gpg -b Release"
+            end
+            system sign_cmd
         end
     end
 end

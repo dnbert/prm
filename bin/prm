@@ -27,6 +27,8 @@ class Main < Clamp::Command
 	  warn "WARNING: Generate option (--generate) is deprecated\n" +
 	  "This option will be removed in next stable release (0.3.0)\n"
   end
+  option ["-k", "--gpg"], "GPG KEY",  "Sign release files with this GPG key", :default => false
+  option ["-g", "--generate"], :flag , "Generate new repository"
 
   def execute
 	if recent? && !snapshot
@@ -43,7 +45,7 @@ class Main < Clamp::Command
     r.type = type
     r.path = path
     if gpg?
-      r.gpg = gpg?
+      r.gpg = gpg
     end
     unless accesskey.nil?
       r.accesskey = accesskey
