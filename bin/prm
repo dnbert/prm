@@ -22,13 +22,11 @@ class Main < Clamp::Command
   option ["-d", "--directory"], "DIRECTORY", "Move packages from directory to target", :default => false
   option ["-s", "--snapshot"], "COMPONENT", "Creates a snapshot of a component", :default => false
   option ["-e", "--recent"], :flag, "Snapshot the most recent unique packages", :default => false
-  option ["-k", "--gpg"], :flag,  "Sign release files with users GPG key", :default => false
   option ["-g", "--generate"], :flag , "[DEPRECATED 0.2.4]" do
 	  warn "WARNING: Generate option (--generate) is deprecated\n" +
 	  "This option will be removed in next stable release (0.3.0)\n"
   end
-  option ["-k", "--gpg"], "GPG KEY",  "Sign release files with this GPG key", :default => false
-  option ["-g", "--generate"], :flag , "Generate new repository"
+  option ["-k", "--gpg"], "GPG KEY",  "Sign release files with this GPG key"
 
   def execute
 	if recent? && !snapshot
@@ -36,7 +34,7 @@ class Main < Clamp::Command
 	end
 
 	if type == "deb" && !component
-		raise "--deb option required the --component option!"
+		raise "--deb option required for the --component option!"
 	end
 
     r = PRM::Repo.new
@@ -44,7 +42,10 @@ class Main < Clamp::Command
     r.arch = arch
     r.type = type
     r.path = path
-    if gpg?
+    if gpg
+	  if gpg.nil?
+		  gpg = true
+	  end
       r.gpg = gpg
     end
     unless accesskey.nil?

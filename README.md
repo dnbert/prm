@@ -65,19 +65,24 @@ gem install prm
 Commands
 ===
 ```
---type, -t <s>:   		Type of repository to create
---path, -p <s>:   		Path to future repository location
---release, -r <s>:   	Release name for repository (Multi release supported by comma)
---arch, -a <s>:   		Architecture for repository (Multi arch supported by comma)
---component, -c <s>:    Component to create [DEB ONLY] (Multi component supported by comma)
---gpg:   				Sign release files with a GPG key (Expects GPG key to be available)
---version, -v:   		Print version and exit
---help, -h:   			Show this message
---accesskey, -e <s>:   Access Key for DreamObjects
---secretkey, -s <s>:   Secret Key for DreamObjects
--e, --recent                  Snapshot the most recent unique packages
--d, --directory DIRECTORY     Move packages from directory to target
--s, --snapshot COMPONENT      Creates a snapshot of a component
+Usage:
+prm [OPTIONS]
+
+Options:
+-t, --type TYPE               Type of repo to create
+-p, --path PATH               Path to repo location
+-r, --release RELEASE         OS version to create
+-a, --arch ARCH               Architecture of repo contents
+-c, --component COMPONENT     Component to create [DEB ONLY]
+--nocache                     Don't cache md5 sums [DEB ONLY]
+--accesskey ACCESS KEY        DHO/S3 Access Key (default: false)
+--secretkey SECRET KEY        DHO/S3 Secret Key (default: false)
+-d, --directory DIRECTORY     Move packages from directory to target (default: false)
+-s, --snapshot COMPONENT      Creates a snapshot of a component (default: false)
+-e, --recent                  Snapshot the most recent unique packages (default: false)
+-g, --generate                [DEPRECATED 0.2.4]
+-k, --gpg GPG KEY             Sign release files with this GPG key
+-h, --help                    print help
 ```
 
 Example
