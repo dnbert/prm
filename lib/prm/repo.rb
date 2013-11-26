@@ -112,7 +112,7 @@ module Debian
 
             write_mutex.synchronize do
                 # Copy the control file data into the Packages list
-                d.write(File.read("tmp/#{tdeb}/control"))
+                d.write(File.read("tmp/#{tdeb}/control").chomp)
                 d.write(package_info.join("\n"))
                 d.write("\n") # blank line between package info in the Packages file
             end
