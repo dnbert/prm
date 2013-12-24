@@ -372,6 +372,7 @@ module PRM
                 silent = false
                 build_apt_repo(path,pcomponent,parch,prelease,gpg,silent,nocache)
             elsif "#{@type}" == "sync"
+                parch,pcomponent,prelease = _parse_vars(arch,component,release)
                 sync_to_dho(path, accesskey, secretkey,pcomponent,prelease)
             elsif "#{@type}" == "rpm"
                 component = nil
