@@ -360,7 +360,7 @@ module PRM
                 parch,pcomponent,prelease = _parse_vars(arch,component,release)
                 if snapshot
                     snapshot_to(path,pcomponent,prelease,snapshot,type,recent)
-                    pcomponent = snapshot
+                    pcomponent << snapshot
                 end
                 if directory
                     silent = true
