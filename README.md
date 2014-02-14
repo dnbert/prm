@@ -48,6 +48,11 @@ prm -t deb -p pool -r precise -a amd64 -c unstable -s stable -g
 
 The --recent option will only move packages based on their name and their last mtime. For example, if you have a package named openstack-keystone with versions 1.2, 1.3 and 1.4 then only the last modified time of that package will be moved. So if openstack-keystone_1.3_amd64.deb was the last modified, than the --recent flag will move that package only (1.2 and 1.4 will be left alone). This option is useful for organizations wanting to snapshot branching of collaberative software together and run test suits on it or make it a stable deployment component.
 
+Omnibus
+===
+An Omnibus package is available here https://github.com/rlangford/omnibus-prm
+Many thanks to rlangford!
+
 Todo List
 ===
 
@@ -80,7 +85,6 @@ Options:
 -d, --directory DIRECTORY     Move packages from directory to target (default: false)
 -s, --snapshot COMPONENT      Creates a snapshot of a component (default: false)
 -e, --recent                  Snapshot the most recent unique packages (default: false)
--g, --generate                [DEPRECATED 0.2.4]
 -k, --gpg GPG KEY             Sign release files with this GPG key
 -h, --help                    print help
 ```
