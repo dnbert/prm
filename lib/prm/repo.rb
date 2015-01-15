@@ -123,7 +123,7 @@ module Debian
             end
 
             package_info = [
-                "Filename: #{npath}#{tdeb}",
+                "Filename: #{npath}#{s3_compatible_encode(tdeb)}",
                 "MD5sum: #{md5sum}",
                 "Size: #{init_size}"
             ]
@@ -202,6 +202,10 @@ module Debian
             end
             system sign_cmd
         end
+    end
+
+    def s3_compatible_encode(str)
+        str.gsub(/[#\$&'\(\)\*\+,\/:;=\?@\[\]]/) { |x| x.each_byte.map { |b| '%' + b.to_s(16) }.join }
     end
 end
 
