@@ -12,7 +12,7 @@ require 'arr-pm'
 require File.join(File.dirname(__FILE__), 'rpm.rb')
 
 module Debian
-    def build_apt_repo(path, component, arch, release, gpg, silent, nocache)
+    def build_apt_repo(path, component, arch, release, label, origin, gpg, silent, nocache)
         release.each { |r|
             component.each { |c|
                 arch.each { |a|
@@ -30,7 +30,7 @@ module Debian
                     generate_packages_gz(fpath,pfpath,path,rfpath,r,c,a, silent)
                 }
             }
-            generate_release(path,r,component,arch)
+            generate_release(path,r,component,arch,label,origin)
 
             unless gpg == false
                 generate_release_gpg(path,r, gpg)
@@ -148,7 +148,7 @@ module Debian
         end
     end
 
-    def generate_release(path,release,component,arch)
+    def generate_release(path,release,component,arch,label,origin)
         date = Time.now.utc
 
         release_info = Hash.new()
@@ -181,9 +181,7 @@ module Debian
 
 
         template_dir = File.join(File.dirname(__FILE__), "..", "..", "templates")
-        erb = ERB.new(File.open("#{template_dir}/deb_release.erb") { |file|
-            file.read
-        }).result(binding)
+        erb = ERB.new(File.read("#{template_dir}/deb_release.erb"), nil, "-").result(binding)
 
         release_file = File.new("#{path}/dists/#{release}/Release.tmp","wb")
         release_file.puts erb
@@ -351,6 +349,8 @@ module PRM
         attr_accessor :component
         attr_accessor :arch
         attr_accessor :release
+        attr_accessor :label
+        attr_accessor :origin
         attr_accessor :gpg
         attr_accessor :secretkey
         attr_accessor :accesskey
@@ -368,13 +368,13 @@ module PRM
                 end
                 if directory
                     silent = true
-                    build_apt_repo(path,pcomponent,parch,prelease,gpg,silent,nocache)
+                    build_apt_repo(path,pcomponent,parch,prelease,label,origin,gpg,silent,nocache)
                     if move_packages(path,pcomponent,parch,prelease,directory) == false
                         return
                     end
                 end
                 silent = false
-                build_apt_repo(path,pcomponent,parch,prelease,gpg,silent,nocache)
+                build_apt_repo(path,pcomponent,parch,prelease,label,origin,gpg,silent,nocache)
             elsif "#{@type}" == "sync"
                 parch,pcomponent,prelease = _parse_vars(arch,component,release)
                 sync_to_dho(path, accesskey, secretkey,pcomponent,prelease)

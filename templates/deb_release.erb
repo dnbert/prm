@@ -1,7 +1,13 @@
 Date: <%= date %>
 Suite: <%= release %>
+<% if origin -%>
+Origin: <%= origin %>
+<% end -%>
+<% if label -%>
+Label: <%= label %>
+<% end -%>
 MD5Sum:
  d41d8cd98f00b204e9800998ecf8427e                  0 Release
-<% release_info.each_pair do |k,v| %> <%= 
- "#{release_info[k]['md5sum']}                  #{release_info[k]['size']} #{k}" %>  
-<% end %>
+<% release_info.each_pair do |k,v| -%>
+ <%= "#{release_info[k]['md5sum']}                  #{release_info[k]['size']} #{k}" %>
+<% end -%>
