@@ -16,6 +16,8 @@ class Main < Clamp::Command
   option ["-r", "--release"], "RELEASE", "OS version to create", :required => true
   option ["-a", "--arch"], "ARCH", "Architecture of repo contents", :required => true
   option ["-c", "--component"], "COMPONENT", "Component to create [DEB ONLY]"
+  option ["-l", "--label"], "LABEL", "Label for generated repository [DEB ONLY]"
+  option ["-o", "--origin"], "ORIGIN", "Origin for generated repository [DEB ONLY]"
   option ["--nocache"], :flag, "Don't cache md5 sums [DEB ONLY]"
   option ["--accesskey"], "ACCESS KEY", "DHO/S3 Access Key", :default => false
   option ["--secretkey"], "SECRET KEY", "DHO/S3 Secret Key", :default => false
@@ -42,6 +44,8 @@ class Main < Clamp::Command
     r.arch = arch
     r.type = type
     r.path = path
+    r.label = label
+    r.origin = origin
     unless gpg.nil?
       r.gpg = gpg
     end
