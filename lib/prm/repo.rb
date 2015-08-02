@@ -116,7 +116,7 @@ module Debian
                 file = File.open(md5sum_path, 'r')
                 temp_md5sum = file.read
                 file.close
-                
+
                 if md5sum != temp_md5sum
                     puts "WARN: md5sum mismatch on #{deb}\n"
                 end
@@ -288,11 +288,12 @@ module SNAP
 end
 
 module DHO
-    def sync_to_dho(path, accesskey, secretkey,pcomponent,prelease)
+    def sync_to_dho(path, accesskey, secretkey,pcomponent,prelease,object_store)
         component = pcomponent.join
         release = prelease.join
+        puts object_store.inspect
         AWS::S3::Base.establish_connection!(
-            :server             => 'objects.dreamhost.com',
+            :server             => object_store,
             :use_ssl            => true,
             :access_key_id      => accesskey,
             :secret_access_key  => secretkey
@@ -331,9 +332,9 @@ module DHO
                 end
             end
         end
-        puts "Your apt repository is located at http://objects.dreamhost.com/#{path}/"
+        puts "Your apt repository is located at http://#{object_store}/#{path}/"
         puts "Add the following to your apt sources.list"
-        puts "deb http://objects.dreamhost.com/#{path}/ #{release} #{component}"
+        puts "deb http://#{object_store}/#{path}/ #{release} #{component}"
     end
 end
 
@@ -358,6 +359,7 @@ module PRM
         attr_accessor :directory
         attr_accessor :recent
         attr_accessor :nocache
+        attr_accessor :upload
 
         def create
             if "#{@type}" == "deb"
@@ -377,7 +379,8 @@ module PRM
                 build_apt_repo(path,pcomponent,parch,prelease,label,origin,gpg,silent,nocache)
             elsif "#{@type}" == "sync"
                 parch,pcomponent,prelease = _parse_vars(arch,component,release)
-                sync_to_dho(path, accesskey, secretkey,pcomponent,prelease)
+                object_store = upload
+                sync_to_dho(path, accesskey, secretkey,pcomponent,prelease,object_store)
             elsif "#{@type}" == "rpm"
                 component = nil
                 parch,pcomponent,prelease = _parse_vars(arch,component,release)

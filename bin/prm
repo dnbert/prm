@@ -18,6 +18,7 @@ class Main < Clamp::Command
   option ["-c", "--component"], "COMPONENT", "Component to create [DEB ONLY]"
   option ["-l", "--label"], "LABEL", "Label for generated repository [DEB ONLY]"
   option ["-o", "--origin"], "ORIGIN", "Origin for generated repository [DEB ONLY]"
+  option ["-u", "--upload"], "UPLOAD", "Upload your repository to a S3 compatible object store [DEB ONLY]"
   option ["--nocache"], :flag, "Don't cache md5 sums [DEB ONLY]"
   option ["--accesskey"], "ACCESS KEY", "DHO/S3 Access Key", :default => false
   option ["--secretkey"], "SECRET KEY", "DHO/S3 Secret Key", :default => false
@@ -46,6 +47,9 @@ class Main < Clamp::Command
     r.path = path
     r.label = label
     r.origin = origin
+	unless upload.nil?
+		r.upload = upload
+	end
     unless gpg.nil?
       r.gpg = gpg
     end

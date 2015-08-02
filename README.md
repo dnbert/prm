@@ -20,16 +20,16 @@ Alternatively, you may choose to place your packages into path/dists/release/com
 Syncing
 ===
 
-PRM supports syncing your repository to DreamObjects, an object storage service, using the S3 API.
+PRM supports syncing your Debian and Ubuntu repositories to S3 compatible object stores such as AWS S3 and DreamObjects
 
 ```
-prm -t sync -p pool -r squeeze -a amd64 -c main -g --accesskey my_access_key --secretkey my_secret_key
+prm -t sync -p pool -r squeeze -a amd64 -c main -g --accesskey my_access_key --secretkey my_secret_key -u objects.dreamhost.com
 ```
 
 Buckets are created based on the path (-p) flag. In the previous case, pool would be a bucket and the contents of your repository would be objects. If the 
 bucket does not exist, PRM will create it for you.
 
-To use DreamObjects as your apt repository, add the following to your sources.list
+To use your S3 bucket as your apt repository, add the following to your sources.list
 
 ```
 deb http://objects.dreamhost.com/my_bucket_name/ my_release my_component
@@ -79,13 +79,17 @@ Options:
 -r, --release RELEASE         OS version to create
 -a, --arch ARCH               Architecture of repo contents
 -c, --component COMPONENT     Component to create [DEB ONLY]
+-l, --label LABEL             Label for generated repository [DEB ONLY]
+-o, --origin ORIGIN           Origin for generated repository [DEB ONLY]
+-u, --upload UPLOAD           Upload your repository to a S3 compatible object store [DEB ONLY]
 --nocache                     Don't cache md5 sums [DEB ONLY]
 --accesskey ACCESS KEY        DHO/S3 Access Key (default: false)
 --secretkey SECRET KEY        DHO/S3 Secret Key (default: false)
 -d, --directory DIRECTORY     Move packages from directory to target (default: false)
 -s, --snapshot COMPONENT      Creates a snapshot of a component (default: false)
 -e, --recent                  Snapshot the most recent unique packages (default: false)
--k, --gpg GPG KEY             Sign release files with this GPG key
+-g, --generate                [DEPRECATED 0.2.4]
+-k, --gpg GPG KEY             Sign release files with this GPG key (default: false)
 -h, --help                    print help
 ```
 
