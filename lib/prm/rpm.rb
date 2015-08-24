@@ -113,7 +113,7 @@ module Redhat
                 timestamp = Time.now.to_i
 
                 repomd_xml << create_repomd_xml(xml_data_hash,timestamp)
-                erb_two = ERB.new(File.open("#{template_dir}/repomd.xml.erb", nil, "-") { |file|
+                erb_two = ERB.new(File.open("#{template_dir}/repomd.xml.erb", "r") { |file|
                     file.read
                 }).result(binding)
 

@@ -11,10 +11,11 @@ rescue LoadError
 end
 
 class Main < Clamp::Command
-  option ["-t", "--type"], "TYPE", "Type of repo to create", :required => true
-  option ["-p", "--path"], "PATH", "Path to repo location", :required => true
-  option ["-r", "--release"], "RELEASE", "OS version to create", :required => true
-  option ["-a", "--arch"], "ARCH", "Architecture of repo contents", :required => true
+  option ["-v", "--version"], :flag, "Version information"
+  option ["-t", "--type"], "TYPE", "Type of repo to create"
+  option ["-p", "--path"], "PATH", "Path to repo location"
+  option ["-r", "--release"], "RELEASE", "OS version to create"
+  option ["-a", "--arch"], "ARCH", "Architecture of repo contents"
   option ["-c", "--component"], "COMPONENT", "Component to create [DEB ONLY]"
   option ["-l", "--label"], "LABEL", "Label for generated repository [DEB ONLY]"
   option ["-o", "--origin"], "ORIGIN", "Origin for generated repository [DEB ONLY]"
@@ -32,6 +33,16 @@ class Main < Clamp::Command
   option ["-k", "--gpg"], "GPG KEY",  "Sign release files with this GPG key", :default => false
 
   def execute
+	if version?
+		puts "PRM version: 0.2.13\n"
+		exit
+	end
+
+	unless type && path && release && arch
+		puts "Type, Path, Release and Arch are required arguements"
+		exit
+	end
+
 	if recent? && !snapshot
 		raise "--snapshot is required for --recent\n"
 	end
