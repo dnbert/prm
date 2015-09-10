@@ -152,7 +152,6 @@ module Debian
         date = Time.now.utc
 
         release_info = Hash.new()
-        unreasonable_array = Array.new
         unreasonable_array = ["Packages", "Packages.gz", "Release"]
         component_ar = Array.new
         Dir.glob(path + "/dists/" + release + "/*").select { |f|
