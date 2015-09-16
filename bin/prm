@@ -39,7 +39,7 @@ class Main < Clamp::Command
 	end
 
 	unless type && path && release && arch
-		puts "Type, Path, Release and Arch are required arguements"
+		puts "Type, Path, Release and Arch are required arguments"
 		exit
 	end
 
