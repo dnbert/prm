@@ -127,6 +127,40 @@ module Redhat
         end
     end
 
+    def move_rpm_packages(path,arch,release,directory)
+        unless File.exists?(directory)
+            puts "ERROR: #{directory} doesn't exist... not doing anything\n"
+            return false
+        end
+
+        files_moved = Array.new
+        release.each { |r|
+            arch.each { |a|
+                puts a
+                Dir.glob(directory + "/*.rpm") do |file|
+                    if file =~ /^.*#{a}.*\.rpm$/i || file =~ /^.*all.*\.rpm$/i || file =~ /^.*any.*\.rpm$/i
+                        target_dir = "#{path}/#{r}/#{a}/"
+                        FileUtils.mkpath(target_dir)
+                        if file =~ /^.*#{r}.*\.rpm$/i
+                            # Lets do this here to help mitigate packages like "asdf-123+rhel7.rpm"
+                            FileUtils.cp(file, target_dir)
+                            FileUtils.rm(file)
+                        else
+                            FileUtils.cp(file, target_dir)
+                            files_moved << file
+                        end
+                    end
+                end
+            }
+        }
+
+        files_moved.each do |f|
+            if File.exists?(f)
+                FileUtils.rm(f)
+            end
+        end
+    end
+
     def create_repomd_xml(xml_data_hash,timestamp)
         repomd_meta = String.new
         xml_data_hash.each_pair do |k,v|
