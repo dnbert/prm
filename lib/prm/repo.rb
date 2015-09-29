@@ -38,7 +38,7 @@ module Debian
         }
     end
 
-    def move_packages(path,component,arch,release,directory)
+    def move_apt_packages(path,component,arch,release,directory)
         unless File.exists?(directory)
             puts "ERROR: #{directory} doesn't exist... not doing anything\n"
             return false
@@ -54,7 +54,7 @@ module Debian
                             if file =~ /^.*#{r}.*\.deb$/i
                                 # Lets do this here to help mitigate packages like "asdf-123+wheezy.deb"
                                 FileUtils.cp(file, "#{path}/dists/#{r}/#{c}/binary-#{a}/")
-                            FileUtils.rm(file)
+                                FileUtils.rm(file)
                             else
                                 FileUtils.cp(file, "#{path}/dists/#{r}/#{c}/binary-#{a}/")
                                 files_moved << file
@@ -370,7 +370,7 @@ module PRM
                 if directory
                     silent = true
                     build_apt_repo(path,pcomponent,parch,prelease,label,origin,gpg,silent,nocache)
-                    if move_packages(path,pcomponent,parch,prelease,directory) == false
+                    if move_apt_packages(path,pcomponent,parch,prelease,directory) == false
                         return
                     end
                 end
@@ -383,6 +383,13 @@ module PRM
             elsif "#{@type}" == "rpm"
                 component = nil
                 parch,pcomponent,prelease = _parse_vars(arch,component,release)
+                if directory
+                    silent = true
+                    build_rpm_repo(path,parch,prelease,gpg,silent)
+                    if move_rpm_packages(path,parch,prelease,directory) == false
+                        return
+                    end
+                end
                 silent = false
                 build_rpm_repo(path,parch,prelease,gpg,silent)
             end
