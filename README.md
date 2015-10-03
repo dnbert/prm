@@ -90,6 +90,7 @@ Options:
 -e, --recent                  Snapshot the most recent unique packages (default: false)
 -g, --generate                [DEPRECATED 0.2.4]
 -k, --gpg GPG KEY             Sign release files with this GPG key (default: false)
+-x, --gpg_passphrase          Provide GPG passphrase to prevent prompt by GPG (default: false)
 -h, --help                    print help
 ```
 
@@ -99,6 +100,8 @@ Example
 prm --type deb --path pool --component dev,staging --release precise --arch amd64 --gpg
 
 prm -t deb -p pool -c stable -r precise -a amd64 --directory unstable
+
+prm -t deb -p pool -c stable -r precise -a amd64 --directory unstable --gpg user@domain.com --gpg_password myPa55word
 
 prm -t rpm -a x86_64 -r centos6 -p pool
 ```
