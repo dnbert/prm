@@ -31,6 +31,7 @@ class Main < Clamp::Command
 	  "This option will be removed in next stable release (0.3.0)\n"
   end
   option ["-k", "--gpg"], "GPG KEY",  "Sign release files with this GPG key", :default => false
+  option ["-x", "--gpg_passphrase"], "GPG PASSPHRASE", "Passphrase for GPG key", :default => false
 
   def execute
 	if version?
@@ -63,6 +64,7 @@ class Main < Clamp::Command
 	end
     unless gpg.nil?
       r.gpg = gpg
+      r.gpg_passphrase = gpg_passphrase
     end
     unless accesskey.nil?
       r.accesskey = accesskey

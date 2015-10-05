@@ -194,6 +194,8 @@ module Debian
         Dir.chdir("#{path}/dists/#{release}") do
             if gpg.nil?
               sign_cmd = "gpg --yes --output Release.gpg -b Release"
+            elsif !gpg_passphrase.nil?
+              sign_cmd = "echo \'#{gpg_passphrase}\' | gpg -u #{gpg} --passphrase-fd 0 --yes --output Release.gpg -b Release"
             else
               sign_cmd = "gpg -u #{gpg} --yes --output Release.gpg -b Release"
             end
@@ -352,6 +354,7 @@ module PRM
         attr_accessor :label
         attr_accessor :origin
         attr_accessor :gpg
+        attr_accessor :gpg_passphrase
         attr_accessor :secretkey
         attr_accessor :accesskey
         attr_accessor :snapshot
