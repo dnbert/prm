@@ -31,7 +31,7 @@ class Main < Clamp::Command
 	  "This option will be removed in next stable release (0.3.0)\n"
   end
   option ["-k", "--gpg"], "GPG KEY",  "Sign release files with this GPG key", :default => false
-  option ["-x", "--gpg_passphrase"], "GPG PASSPHRASE", "Passphrase for GPG key", :default => false
+  option ["-x", "--gpg_passphrase"], "GPG PASSPHRASE", "Passphrase for GPG key [DEB ONLY]", :default => false
 
   def execute
 	if version?
