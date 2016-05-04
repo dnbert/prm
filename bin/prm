@@ -32,6 +32,7 @@ class Main < Clamp::Command
   end
   option ["-k", "--gpg"], "GPG KEY",  "Sign release files with this GPG key", :default => false
   option ["-x", "--gpg_passphrase"], "GPG PASSPHRASE", "Passphrase for GPG key", :default => false
+  option ["-n", "--gpg_sign_algorithm"], "GPG SIGN ALGORITHM", "Digest algorithm to use for signing (e.g SHA1, SHA512, etc)", :default => false
 
   def execute
 	if version?
@@ -65,6 +66,7 @@ class Main < Clamp::Command
     unless gpg.nil?
       r.gpg = gpg
       r.gpg_passphrase = gpg_passphrase
+      r.gpg_sign_algorithm = gpg_sign_algorithm
     end
     unless accesskey.nil?
       r.accesskey = accesskey
