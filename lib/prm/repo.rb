@@ -2,11 +2,12 @@ require 'rubygems'
 require 'fileutils'
 require 'zlib'
 require 'digest/md5'
+require 'digest/sha1'
 require 'digest/sha2'
 require 'erb'
 require 'find'
 require 'thread'
-require 'peach' 
+require 'peach'
 require 'aws/s3'
 require 'arr-pm'
 require File.join(File.dirname(__FILE__), 'rpm.rb')
@@ -81,50 +82,55 @@ module Debian
 
         npath = "dists/" + r + "/" + c + "/" + "binary-" + a + "/"
 
-        d = File.open(pfpath, "w+")	
+        d = File.open(pfpath, "w+")
         write_mutex = Mutex.new
 
         Dir.glob("#{fpath}*.deb").peach do |deb|
-            md5sum = ''
-            tdeb = deb.split('/').last
-            md5sum_path = path + "/dists/" + r + "/" + c + "/" + "binary-" + a + "/md5-results/" + tdeb
+            algs = {
+                'md5' => Digest::MD5.new,
+                'sha1' => Digest::SHA1.new,
+                'sha256' => Digest::SHA256.new
+            }
+            sums = {
+                'md5' => '',
+                'sha1' => '',
+                'sha256' => ''
+            }
+            tdeb = File.basename(deb)
+            init_size = File.size(deb)
+            deb_contents = nil
 
             FileUtils.mkdir_p "tmp/#{tdeb}/"
             if not nocache
-                FileUtils.mkdir_p path + "/dists/" + r + "/" + c + "/" + "binary-" + a + "/md5-results/"
+                sums.keys.each do |s|
+                    sum_path = "#{path}/dists/#{r}/#{c}/binary-#{a}/#{s}-results/#{tdeb}"
+                    FileUtils.mkdir_p File.dirname(sum_path)
+
+                    if File.exist?(sum_path)
+                        stored_sum = File.read(sum_path)
+                        sum = stored_sum unless nocache.nil?
+                    end
+
+                    unless sum
+                        deb_contents ||= File.read(deb)
+                        sum = algs[s].hexdigest(deb_contents)
+                    end
+
+                    sums[s] = sum
+                    if nocache.nil?
+                        File.open(sum_path, 'w') { |f| f.write(sum) }
+                    elsif sum != stored_sum
+                        puts "WARN: #{s}sum mismatch on #{deb}\n"
+                    end
+                end
             end
             `ar p #{deb} control.tar.gz | tar zx -C tmp/#{tdeb}/`
 
-            init_size = `wc -c < #{deb}`
-
-            if deb.split("/").last.to_s == md5sum_path.split("/").last.to_s
-
-            end
-            
-            if File.exists?("#{md5sum_path}") && nocache.nil? 
-                file = File.open(md5sum_path, 'r')
-                md5sum = file.read
-                file.close
-            else
-                md5sum = Digest::MD5.file(deb)
-                if nocache.nil?
-                    File.open(md5sum_path, 'w') { |file| file.write(md5sum) }
-                end
-            end
-
-            if File.exists?("#{md5sum_path}") && nocache
-                file = File.open(md5sum_path, 'r')
-                temp_md5sum = file.read
-                file.close
-
-                if md5sum != temp_md5sum
-                    puts "WARN: md5sum mismatch on #{deb}\n"
-                end
-            end
-
             package_info = [
                 "Filename: #{npath}#{s3_compatible_encode(tdeb)}",
-                "MD5sum: #{md5sum}",
+                "MD5sum: #{sums['md5']}",
+                "SHA1: #{sums['sha1']}",
+                "SHA256: #{sums['sha256']}",
                 "Size: #{init_size}"
             ]
 
@@ -132,7 +138,7 @@ module Debian
                 # Copy the control file data into the Packages list
                 d.write(File.read("tmp/#{tdeb}/control").gsub!(/\n+/, "\n"))
                 d.write(package_info.join("\n"))
-                d.write("\n") # blank line between package info in the Packages file
+                d.write("\n\n") # blank line between package info in the Packages file
             end
         end
 
@@ -161,7 +167,7 @@ module Debian
             end
         }
 
-        component_ar.each do |c| 
+        component_ar.each do |c|
             arch.each do |ar|
                 unreasonable_array.each do |unr|
                     tmp_path = "#{path}/dists/#{release}/#{c}/binary-#{ar}"
@@ -169,10 +175,12 @@ module Debian
                     filename = "#{c}/binary-#{ar}/#{unr}".chomp
 
                     byte_size = File.size("#{tmp_path}/#{unr}").to_s
-                    md5sum = Digest::MD5.file("#{tmp_path}/#{unr}").to_s
+                    file_contents = File.read("#{tmp_path}/#{unr}")
 
                     tmp_hash['size'] = byte_size
-                    tmp_hash['md5sum'] = md5sum
+                    tmp_hash['md5'] = Digest::MD5.hexdigest(file_contents)
+                    tmp_hash['sha1'] = Digest::SHA1.hexdigest(file_contents)
+                    tmp_hash['sha256'] = Digest::SHA256.hexdigest(file_contents)
                     release_info[filename] = tmp_hash
                 end
             end
@@ -215,7 +223,7 @@ module SNAP
             return
         end
 
-        release.each do |r| 
+        release.each do |r|
             time = Time.new
             now = time.strftime("%Y-%m-%d-%H-%M")
             new_snap = "#{snapname}-#{now}"
@@ -228,7 +236,7 @@ module SNAP
                 end
             end
 
-            if File.exists?("#{path}/dists/#{r}/#{snapname}") && !File.symlink?("#{path}/dists/#{r}/#{snapname}") 
+            if File.exists?("#{path}/dists/#{r}/#{snapname}") && !File.symlink?("#{path}/dists/#{r}/#{snapname}")
                 puts "Snapshot target is a filesystem, remove it or rename your snap target"
                 return
             end
