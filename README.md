@@ -91,6 +91,7 @@ Options:
 -g, --generate                [DEPRECATED 0.2.4]
 -k, --gpg GPG KEY             Sign release files with this GPG key (default: false)
 -x, --gpg_passphrase          Provide GPG passphrase to prevent prompt by GPG (default: false)
+-n, --gpg_sign_algorithm      Provide GPG hash digest signing algorithm (default: false)
 -h, --help                    print help
 ```
 
