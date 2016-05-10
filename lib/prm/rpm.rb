@@ -122,6 +122,13 @@ module Redhat
                 r_file.close
 
                 FileUtils.mv("#{repo_path}/repomd.xml.tmp", "#{repo_path}/repomd.xml")
+
+                unless gpg == false
+                    # We expect that GPG is installed and a key has already been made
+                    sign_cmd = "gpg -u #{gpg} --yes --detach-sign --armor #{repo_path}/repomd.xml"
+                    system sign_cmd
+                end
+
                 puts "Built Yum repository for #{r}\n"
             end
         end
