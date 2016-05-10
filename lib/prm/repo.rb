@@ -200,12 +200,18 @@ module Debian
     # We expect that GPG is installed and a key has already been made
     def generate_release_gpg(path,release,gpg)
         Dir.chdir("#{path}/dists/#{release}") do
-            if gpg.nil?
-              sign_cmd = "gpg --yes --output Release.gpg -b Release"
-            elsif !gpg_passphrase.nil?
-              sign_cmd = "echo \'#{gpg_passphrase}\' | gpg -u #{gpg} --passphrase-fd 0 --yes --output Release.gpg -b Release"
+            if gpg_sign_algorithm.nil?
+                sign_algorithm = "none"
             else
-              sign_cmd = "gpg -u #{gpg} --yes --output Release.gpg -b Release"
+                sign_algorithm = gpg_sign_algorithm
+            end
+
+            if gpg.nil?
+              sign_cmd = "gpg --digest-algo \"#{sign_algorithm}\" --yes --output Release.gpg -b Release"
+            elsif !gpg_passphrase.nil?
+              sign_cmd = "echo \'#{gpg_passphrase}\' | gpg --digest-algo \"#{sign_algorithm}\" -u #{gpg} --passphrase-fd 0 --yes --output Release.gpg -b Release"
+            else
+              sign_cmd = "gpg --digest-algo \"#{sign_algorithm}\" -u #{gpg} --yes --output Release.gpg -b Release"
             end
             system sign_cmd
         end
@@ -363,6 +369,7 @@ module PRM
         attr_accessor :origin
         attr_accessor :gpg
         attr_accessor :gpg_passphrase
+        attr_accessor :gpg_sign_algorithm
         attr_accessor :secretkey
         attr_accessor :accesskey
         attr_accessor :snapshot
