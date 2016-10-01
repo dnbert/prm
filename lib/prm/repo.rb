@@ -155,6 +155,12 @@ module Debian
     end
 
     def generate_release(path,release,component,arch,label,origin)
+
+	# Debian enforces RFC5322 3.3, which suggests UTC to be denoted
+	# as +0000.
+	# https://tools.ietf.org/html/rfc5322#section-3.3
+	# https://wiki.debian.org/RepositoryFormat#Date.2CValid-Until
+	ENV['TZ'] = 'UTC'
         date = Time.now.utc
 
         release_info = Hash.new()
