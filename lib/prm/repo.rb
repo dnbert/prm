@@ -161,7 +161,7 @@ module Debian
 	# https://tools.ietf.org/html/rfc5322#section-3.3
 	# https://wiki.debian.org/RepositoryFormat#Date.2CValid-Until
 	ENV['TZ'] = 'UTC'
-        date = Time.now.utc
+        date = Time.now
 
         release_info = Hash.new()
         unreasonable_array = ["Packages", "Packages.gz", "Release"]
