@@ -207,11 +207,11 @@ module Debian
             end
 
             if gpg.nil?
-              sign_cmd = "gpg --digest-algo \"#{sign_algorithm}\" --yes --output Release.gpg -b Release"
-            elsif !gpg_passphrase.nil?
-              sign_cmd = "echo \'#{gpg_passphrase}\' | gpg --digest-algo \"#{sign_algorithm}\" -u #{gpg} --passphrase-fd 0 --yes --output Release.gpg -b Release"
+              sign_cmd = "gpg --digest-algo \"#{sign_algorithm}\" --no-tty --yes --output Release.gpg -b Release"
+            elsif gpg_passphrase
+              sign_cmd = "echo \'#{gpg_passphrase}\' | gpg --digest-algo \"#{sign_algorithm}\" --no-tty -u #{gpg} --passphrase-fd 0 --yes --output Release.gpg -b Release"
             else
-              sign_cmd = "gpg --digest-algo \"#{sign_algorithm}\" -u #{gpg} --yes --output Release.gpg -b Release"
+              sign_cmd = "gpg --digest-algo \"#{sign_algorithm}\" -u #{gpg} --no-tty --yes --output Release.gpg -b Release"
             end
             system sign_cmd
         end
